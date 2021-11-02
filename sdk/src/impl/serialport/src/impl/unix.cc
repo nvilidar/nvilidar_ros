@@ -1046,11 +1046,11 @@ Serial::SerialImpl::getCD ()
   }
 }
 
-uint32_t
-Serial::SerialImpl::getByteTime()
-{
-    return byte_time_ns_;
-}
+// uint32_t
+// Serial::SerialImpl::getByteTime()
+// {
+//     return byte_time_ns_;
+// }
 
 void
 Serial::SerialImpl::readLock ()

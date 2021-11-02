@@ -46,6 +46,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/sdk/src/impl/console
   ${PROJECT_SOURCE_DIR}/sdk/src/impl/string
   ${PROJECT_SOURCE_DIR}/sdk/src/impl/angles
+  ${PROJECT_SOURCE_DIR}/sdk/src/impl/signal
   ${PROJECT_SOURCE_DIR}/sdk/src/impl/serialport/src/impl/*.cc
 )
 

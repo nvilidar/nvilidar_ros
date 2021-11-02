@@ -43,7 +43,7 @@ bool LidarSerialDriver::Connect(std::string portname,uint32_t baud)
     {
         lidar_state.m_SerialOpen = true;
         //获取字节传输时间
-        m_byte_trans_delay = serialport->getByteTime();     //获取2字节传输时间
+        // m_byte_trans_delay = serialport->getByteTime();     //获取2字节传输时间
 
         return true;
     }
@@ -1271,16 +1271,13 @@ result_t LidarSerialDriver::WaitPointSinglePackData(std::vector<node_info> &info
 
     //----------------计算角度及距离信息 list-------------------------
     package_pointlist.clear();
+
     for(int i = 0; i<package_point_num; i++)
     {
         node_info node;
 
         if(lidar_cfg.IsHasSensitive)
         {
-            //校验更新
-            packageInfo.packageCheckSumCalc ^= packageInfo.packageBuffer.pack_qua.packageSample[i].PakageSampleQuality;
-            packageInfo.packageCheckSumCalc ^= packageInfo.packageBuffer.pack_qua.packageSample[i].PakageSampleDistance;
-
             //点信息更新
             node.lidar_distance = packageInfo.packageBuffer.pack_qua.packageSample[i].PakageSampleDistance;     //距离
             node.lidar_quality = packageInfo.packageBuffer.pack_qua.packageSample[i].PakageSampleQuality;       //信号质量
@@ -1315,9 +1312,6 @@ result_t LidarSerialDriver::WaitPointSinglePackData(std::vector<node_info> &info
         }
         else
         {
-            //校验更新
-            packageInfo.packageCheckSumCalc ^= packageInfo.packageBuffer.pack_no_qua.packageSample[i].PakageSampleDistance;
-
             //点信息更新
             node.lidar_distance = packageInfo.packageBuffer.pack_no_qua.packageSample[i].PakageSampleDistance;     //距离
             node.lidar_quality = 0;
@@ -1354,7 +1348,15 @@ result_t LidarSerialDriver::WaitPointSinglePackData(std::vector<node_info> &info
         package_pointlist.push_back(node);  //追加到列表内
     }
 
-    info = package_pointlist;       //容器赋值
+    if(packageInfo.packageCheckSumCalc == packageInfo.packageCheckSumGet)
+    {
+        info = package_pointlist;       //容器赋值
+    }
+    else 
+    {
+        //printf("crc error cal:%04x,get:%04x\r\n",packageInfo.packageCheckSumCalc,packageInfo.packageCheckSumGet);
+        info.clear();
+    }
 
     return RESULT_OK;       //成功
 }
@@ -1448,6 +1450,14 @@ result_t LidarSerialDriver::grabScanData(std::vector<node_info>&info,uint32_t ti
             }
             ScopedLocker l(_lock);
             info = circle_node_points;
+
+            // for(int i = 0; i<info.size(); i++)
+            // {
+            //     if(info.at(i).lidar_distance > 60000)
+            //     {
+            //         printf("error_dis:%d\r\n",info.at(i).lidar_distance);
+            //     }
+            // }
             return RESULT_OK;
         }
         default:

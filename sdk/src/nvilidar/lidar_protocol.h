@@ -90,23 +90,25 @@ struct PackageNode_NoQualiry
 
 //包数目 加信号质量
 struct node_package_qua {
-    uint16_t  package_Head;
-    uint8_t   package_CT;
-    uint8_t   nowPackageNum;
-    uint16_t  packageFirstSampleAngle;
-    uint16_t  packageLastSampleAngle;
-    uint16_t  checkSum;
+    uint16_t  package_Head;         //包头
+    uint16_t  package_Speed_0C;     //速度
+    uint8_t   package_Index_0C;     //0度的索引
+    uint8_t   package_packageNum;   //打包数目
+    uint16_t  packageFirstSampleAngle;  //起始角
+    uint16_t  packageLastSampleAngle;   //结束角
+    uint16_t  checkSum; //校验
     PackageNode_Quality  packageSample[LIDAR_PACK_MAX_POINTS];
 } __attribute__((packed)) ;
 
 //包信息 不加信号质量
 struct node_package_no_qua {
-    uint16_t  package_Head;
-    uint8_t   package_CT;
-    uint8_t   nowPackageNum;
-    uint16_t  packageFirstSampleAngle;
-    uint16_t  packageLastSampleAngle;
-    uint16_t  checkSum;
+    uint16_t  package_Head;         //包头
+    uint16_t  package_Speed_0C;     //速度
+    uint8_t   package_Index_0C;     //0度的索引
+    uint8_t   package_packageNum;   //打包数目
+    uint16_t  packageFirstSampleAngle;  //起始角
+    uint16_t  packageLastSampleAngle;   //结束角
+    uint16_t  checkSum; //校验
     PackageNode_NoQualiry  packageSample[LIDAR_PACK_MAX_POINTS];
 } __attribute__((packed)) ;
 

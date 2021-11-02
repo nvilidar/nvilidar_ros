@@ -432,7 +432,7 @@ bool Serial::getCD ()
 }
 
 //add get byte time
-uint32_t Serial::getByteTime()
-{
-    return pimpl_->getByteTime();
-}
+// uint32_t Serial::getByteTime()
+// {
+//     return pimpl_->getByteTime();
+// }

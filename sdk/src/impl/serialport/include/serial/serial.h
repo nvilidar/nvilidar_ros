@@ -648,8 +648,8 @@ public:
   getCD ();
 
   /*! Returns the current 2 Byte times delay(ns). */
-  uint32_t
-  getByteTime();
+  // uint32_t
+  // getByteTime();
 
 private:
   // Disable copy constructors

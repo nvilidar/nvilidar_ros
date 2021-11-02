@@ -619,11 +619,11 @@ Serial::SerialImpl::getCD()
   return (MS_RLSD_ON & dwModemStatus) != 0;
 }
 
-uint32_t
-Serial::SerialImpl::getByteTime()
-{
-    return byte_time_ns_;           //get byte times
-}
+// uint32_t
+// Serial::SerialImpl::getByteTime()
+// {
+//     return byte_time_ns_;           //get byte times
+// }
 
 void
 Serial::SerialImpl::readLock()

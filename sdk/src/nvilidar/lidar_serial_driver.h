@@ -19,7 +19,7 @@ typedef void* (* pFUNC)(void *);
 #endif
 
 //雷达配置参数
-typedef struct
+struct  PackageConfigTypeDef
 {
     uint8_t     IsSingleChannel;         //单通道通信
     uint8_t     IsHasSensitive;         //有信号质量信息
@@ -28,26 +28,26 @@ typedef struct
     int16_t     angleOffset;            //角度偏移x64
     uint8_t     trailingLevel;          //拖尾等级
     device_info lidar_device_info;      //雷达设备信息
-}PackageConfigTypeDef;
+}__attribute__((packed));
 
 //雷达信息
-typedef struct
+struct PackageStateTypeDef
 {
     bool m_SerialOpen;              //串口开启标记
     bool m_Scanning;                //正在扫描出图
     uint8_t last_device_byte;       //上包接到的字节信息
-}PackageStateTypeDef;
+}__attribute__((packed));
 
 //共用体
-typedef union
+union PackageBufTypeDef
 {
     uint8_t buf[1200];
     node_package_qua        pack_qua;
     node_package_no_qua     pack_no_qua;
-}PackageBufTypeDef;
+}__attribute__((packed));
 
 //包信息
-typedef struct
+struct PackageInfoTypeDef
 {
      uint16_t packageIndex;         //单包采样点索引位置信息
      PackageBufTypeDef  packageBuffer;    //包信息（实际内容）
@@ -67,8 +67,7 @@ typedef struct
      bool     packageHas0CFirst;    //第一个字节 判断是否是0度角
      bool     packageHasTempFirst;  //第一个字节 判断是否为温度信息
      uint16_t  package0CIndex;      //0度角索引（目前协议为非单独封包）
-     std::vector<node_info> packagePointList;    //一包数据点的列表信息
-}PackageInfoTypeDef;
+} __attribute__((packed));
 
 
 

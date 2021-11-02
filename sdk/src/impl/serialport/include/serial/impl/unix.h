@@ -188,8 +188,8 @@ public:
   void
   writeUnlock ();
 
-  uint32_t
-  getByteTime();
+  // uint32_t
+  // getByteTime();
 
 protected:
   void reconfigurePort ();

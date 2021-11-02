@@ -3,12 +3,12 @@
 #include "CNviLidar.h"
 #include <vector>
 #include <iostream>
-#include <string>
-#include <signal.h>
+#include <string.h>
+#include "mysignal.h"
 
 using namespace nvilidar;
 
-#define ROSVerision "1.0.0"
+#define ROSVerision "1.0.1"
 
 
 std::vector<float> split(const std::string &s, char delim) 
@@ -33,6 +33,9 @@ int main(int argc, char * argv[]) {
     printf("|_| \\_|   \\/   |_____|______|_____|_____/_/    \\_\\_|  \\ \\\n");
     printf("\n");
     fflush(stdout);
+
+    //sig init 
+    nvilidar::SigInit();
   
     std::string port;
     int baudrate = 921600;
@@ -112,7 +115,7 @@ int main(int argc, char * argv[]) {
     }
     ros::Rate rate(50);
 
-    while (ret && ros::ok) 
+    while (ret && ros::ok && nvilidar::isOK()) 
     {
        // bool hardError;
          LidarScan scan;
@@ -136,7 +139,8 @@ int main(int argc, char * argv[]) {
             scan_msg.intensities.resize(size);
             for(int i=0; i < scan.points.size(); i++) {
                 int index = std::ceil((scan.points[i].angle - scan.config.min_angle)/scan.config.angle_increment);
-                if(index >=0 && index < size) {
+                if(index >=0 && index < size) 
+                {
                      scan_msg.ranges[index] = scan.points[i].range;
                      scan_msg.intensities[index] = scan.points[i].intensity;
                 }

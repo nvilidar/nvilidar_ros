@@ -10,6 +10,7 @@ include_directories(src/impl/string)
 include_directories(src/impl/thread)
 include_directories(src/impl/timer)
 include_directories(src/impl/socket)
+include_directories(src/impl/signal)
 
 
 FILE(GLOB SDK_SRC 

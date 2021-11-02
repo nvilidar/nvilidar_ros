@@ -179,6 +179,8 @@ namespace nvilidar
           ::old_action = set_sigaction(SIGINT, action);
           set_sigaction(SIGTERM, action);
 
+         // printf("sig init");
+
         #else
           ::old_signal_handler = set_signal_handler(SIGINT, ::signal_handler);
           // Register an on_shutdown hook to restore the old signal handler.
