@@ -1,4 +1,4 @@
-# NVILIDAR ROS DRIVER(V1.0.0)
+# NVILIDAR ROS DRIVER(V1.0.1)
 
 
 ## How to [install ROS](http://wiki.ros.org/cn/ROS/Installation)
@@ -17,11 +17,17 @@ you also can with this:
         $cd ~/nvilidar_ros_ws/src
     2)  $cd..
     3)  $catkin_make
+    4)  $source devel/setup.bash
+    5)  echo $ROS_PACKAGE_PATH
+        /home/user/nvilidar_ws/src:/opt/ros/kinetic/share
+
 
 ## How to build NVILiDAR ROS Package
 
     1) Clone this project to your catkin's workspace src folder
-    	(1). git clone https://github.com/nvilidar/nvilidar_ros.git
+    	(1). git clone https://github.com/nvilidar/     nvilidar_ros.git  
+          or
+          git clone https://gitee.com/nvilidar/nvilidar_ros.git
     	(2). git chectout master
     2) Copy the ros source file to the "~/nvilidar_ros_ws/src"
     2) Running "catkin_make" to build nvilidar_node and nvilidar_client
@@ -29,6 +35,7 @@ you also can with this:
     --$ roscd nvilidar_ros/startup
     --$ sudo chmod 777 ./*
     --$ sudo sh initenv.sh
+
 
 ## How to Run NVILIDAR ROS Package
 #### 1. Run NVILIDAR node and view in the rviz

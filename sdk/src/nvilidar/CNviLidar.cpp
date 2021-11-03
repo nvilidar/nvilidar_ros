@@ -224,23 +224,23 @@ bool CNviLidar::LidarSamplingProcess(LidarScan &outscan)
     size_t all_nodes_counts = m_nodeCounts;     //当前点数信息
 
     uint64_t tim_scan_start = getTime();        //获取起始时间
-    uint64_t startTs = tim_scan_start;          //获取起始时间
     result_t op_result =  driver->grabScanData(PointLidar);
     uint64_t tim_scan_end = getTime();
 
+    //计算真实起始时间 
+    uint64_t scan_time = tim_scan_end - tim_scan_start;      //计算时间戳 
+    
+    //tim_scan_start = tim_scan_start + tim_0c_spend;
+    //printf("scan_time:%ld\n",scan_time);
+
+    
+
     //清空输出缓存
     outscan.points.clear();
-
     //如果超时  则进行解包等等操作
     if(IS_OK(op_result))
     {
         uint32_t count = PointLidar.size();
-
-        //超出了 不计算  有误
-//        if((count >(m_nodeCounts + m_nodeCounts /10) ) || (count < (m_nodeCounts - m_nodeCounts / 10)))
-//        {
-//            return false;
-//        }
 
         //是否固定的角分辨率
         if (m_FixedResolution)
@@ -259,22 +259,6 @@ bool CNviLidar::LidarSamplingProcess(LidarScan &outscan)
             m_MinAngle = m_MaxAngle;
             m_MaxAngle = temp;
         }
-
-        //初步计算时间
-        uint64_t scan_time = m_pointTime * (count - 1);     //浏览一圈所需要的时间
-
-        tim_scan_end -= driver->getPackageTime();           //减去传输一包所用时间
-        tim_scan_end -= driver->getZeroTransTime();         //减于0位部分时间
-
-        tim_scan_start = tim_scan_end -  scan_time ;        //推算的起始时间  减去一圈点的时间
-
-        //判断起始时间 小于计时时间
-        if (tim_scan_start < startTs)
-        {
-            tim_scan_start = startTs;
-            tim_scan_end = tim_scan_start + scan_time;
-        }
-
 
         int counts = all_nodes_counts * ((m_MaxAngle - m_MinAngle) / 360.0f);   //计算点数信息
 

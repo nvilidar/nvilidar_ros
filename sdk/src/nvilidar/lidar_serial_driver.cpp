@@ -10,7 +10,6 @@ LidarSerialDriver::LidarSerialDriver(PackageConfigTypeDef cfg)
     lidar_state.m_SerialOpen = false;       //默认串口关闭
     lidar_state.m_Scanning = false;         //默认扫描接口关闭
 
-    m_byte_trans_delay = 0;                 //2字节传输时间清0
     m_packageTime  = 0;                     //2包数据传输时间间隔清0
 
     if(cfg.IsHasSensitive)
@@ -900,9 +899,13 @@ result_t LidarSerialDriver::WaitPointSinglePackData(std::vector<node_info> &info
     uint16_t    checksum_speed_temp = 0;        //校验计算
     uint16_t    checksum_packnum_index = 0;     //包数目和0位索引校验
     uint16_t    checksum_temp = 0;              //临时校验计算
+    uint64_t    package_starttime = 0;          //起始时间戳 
 
     //先将包数据清掉
     memset(packageInfo.packageBuffer.buf,0x00,sizeof(packageInfo.packageBuffer.buf));
+
+    //get起始时间戳 
+    package_starttime = getTime();
 
     //如果未接到包头部分  则开始先接包头的信息
     //-----------------------接包头数据 10byte-----------------------
@@ -1219,14 +1222,7 @@ result_t LidarSerialDriver::WaitPointSinglePackData(std::vector<node_info> &info
         if(recvSize >= remain_size)
         {
             recvSize = remain_size;
-
-            //获取到接当前包的时间（整包所用的时间）用来计算时间戳
-            m_packageTime = m_byte_trans_delay * (LIDAR_PACKAGE_HEAD_SIZE + remain_size);
-            //获取0度到最后一包所用的时间
-            if((packageInfo.package0CIndex != 0)&&(package_point_num >= packageInfo.package0CIndex))
-            {
-                m_zeroTransTime = (package_point_num - packageInfo.package0CIndex)*m_pointTime;
-            }
+            m_packageTime = getTime() - package_starttime;        //结束时间减去起始时间 
 
             //数据解析处理
             ans = RecvSerial(packageInfo.packageBuffer.buf + LIDAR_PACKAGE_HEAD_SIZE,recvSize);
@@ -1324,6 +1320,7 @@ result_t LidarSerialDriver::WaitPointSinglePackData(std::vector<node_info> &info
             {
                 if(i == packageInfo.package0CIndex)
                 {
+                    m_0cIndex = packageInfo.package0CIndex; //求的0度所在位置  
                     node.lidar_angle_zero_flag = true;
                 }
                 else
@@ -1556,9 +1553,9 @@ uint32_t LidarSerialDriver::getScanState()
     return lidar_state.m_Scanning;
 }
 //获取0位包  已传输时间
-uint32_t LidarSerialDriver::getZeroTransTime()
+uint32_t LidarSerialDriver::getZeroIndex()
 {
-    return m_zeroTransTime;
+    return m_0cIndex;
 }
 
 }//namespace

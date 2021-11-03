@@ -123,7 +123,7 @@ public:
     //获取接最后包的时间
     virtual uint32_t getPackageTime();              //获取当前整包传送的时间
     //获取0度已传输时间
-    virtual uint32_t getZeroTransTime();            //获取0度点的传输时间
+    virtual uint32_t getZeroIndex();                //获取0度索引 
 private:
     result_t SendSerial(const uint8_t *data, size_t size);     //发送串口接口  私有类
     result_t RecvSerial(const uint8_t *data, size_t size);     //接收串口数据  私有类
@@ -154,8 +154,9 @@ private:
 
     uint32_t    m_packageTime = 0;          //一包数据的传输时间
     uint32_t    m_pointTime = 0;            //2个雷达点的时间间隔
-    uint32_t    m_byte_trans_delay = 0;     //串口传输一个byte时间
-    uint32_t    m_zeroTransTime = 0;        //0度角传输的时间（由于0度非单独分包，所以需要得到算到0度到包守成已用的时间）
+    uint32_t    m_0cIndex = 0;              //0度所用的index
+    int32_t    m_last0cIndex = 0;              //0度所用的index
+    uint32_t    m_differ0cIndex = 0;              //0度所用的index
     bool        m_first_circle_finish = false;  //first circle finish,case calc fault
 };
 }

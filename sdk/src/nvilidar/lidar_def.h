@@ -20,7 +20,7 @@ typedef int32_t result_t;
 #define IS_FAIL(x)     ( (x) == RESULT_FAIL )
 #define IS_GET(x)      ( (x) == RESULT_GETTING )
 
-#define SDKVerision     "1.0.0"
+#define SDKVerision     "1.0.1"
 
 //雷达型号
 enum
