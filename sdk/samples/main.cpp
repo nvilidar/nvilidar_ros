@@ -1,6 +1,11 @@
-#include "CNviLidar.h"
+#include <stdio.h>
+#include <iostream>
+#include "nvilidar_driver_serialport.h"
+#include "nvilidar_dataprocess.h"
+#include "serial/nvilidar_serial.h"
+#include "myconsole.h"
 #include "mysignal.h"
-#include "console.h"
+#include "mytimer.h"
 
 using namespace std;
 using namespace nvilidar;
@@ -9,11 +14,8 @@ using namespace nvilidar;
 #pragma comment(lib, "nvilidar_driver.lib")
 #endif
 
-int main(int argc, char *argv[])
+int main()
 {
-    CNviLidar lidar;
-
-
     printf(" _   ___      _______ _      _____ _____          _____ \n");
     printf("| \\ | \\ \\    / /_   _| |    |_   _|  __ \\   /\\   |  __ \\\n");
     printf("|  \\| |\\ \\  / /  | | | |      | | | |  | | /  \\  | |__) |\n");
@@ -23,112 +25,114 @@ int main(int argc, char *argv[])
     printf("\n");
     fflush(stdout);
 
+	//初始化信号 用于命令行退出  
+	nvilidar::sigInit();
+
     std::string port;       //选择的串口
-
-    //初始化信号
-    nvilidar::SigInit();
-
-    std::map<std::string, std::string> ports = CNvilidar::getLidarPortList();       //获取串口列表
-    std::map<std::string, std::string>::iterator it;
+	std::vector<NvilidarSerialPortInfo> ports = nvilidar::LidarDriverSerialport::getPortList();       //获取串口列表
+	std::vector<NvilidarSerialPortInfo>::iterator it;
 
     //列表信息
-    if(1 == ports.size())
+	if(ports.empty())
+	{
+		nvilidar::console.show("Not Lidar was detected.");
+        return 0;
+	}
+    else if(1 == ports.size())
     {
-        it = ports.begin();
-        port = it->second;
+		it = ports.begin();
+		port = (*it).portName;
     }
     else
     {
         int id = 0;
         for (it = ports.begin(); it != ports.end(); it++)
         {
-            nvilidar::console.show("%d. %s\n", id, it->first.c_str());
+			nvilidar::console.show("%d. %s  %s\n", id, it->portName.c_str(),it->description.c_str());
             id++;
         }
-
-        if (ports.empty())
+        while (nvilidar::isOK())
         {
-          nvilidar::console.show("Not Lidar was detected. Please enter the lidar serial port:");
-          std::cin >> port;
-        }
-        else
-        {
-            while (nvilidar::isOK())
-            {
-                nvilidar::console.show("Please select the lidar port:");
-                std::string number;
-                std::cin >> number;
+            nvilidar::console.show("Please select the lidar port:");
+            std::string number;
+			std::cin >> number;
 
-                if ((size_t)atoi(number.c_str()) >= ports.size()) {
-                  continue;
-                }
-
-                it = ports.begin();
-                id = atoi(number.c_str());
-
-                while (id)
-                {
-                  id--;
-                  it++;
-                }
-
-                port = it->second;
-                break;
+			//参数不合法 
+            if ((size_t)atoi(number.c_str()) >= ports.size()) 
+			{
+                continue;
             }
+			//参数配置 
+            it = ports.begin();
+            id = atoi(number.c_str());
+
+			//查找  
+			port = ports.at(id).portName;
+			
+            break;
         }
     }
-    //是否OK
-    if (!nvilidar::isOK())
-    {
-      return 0;
-    }
 
-    //先写初始值（全部可改  但是有些参数是连接后重新获取的）
-    lidar.setSerialPort(port);
-    lidar.setSerialBaudrate(921600);
-    lidar.setAutoReconnect(true);//hot plug
-    lidar.setMaxRange(64.0);
-    lidar.setMinRange(0.1);
-    lidar.setMaxAngle(180);
-    lidar.setMinAngle(-180);
-    lidar.setSampleRate(20);
-    lidar.setScanFrequency(10.0);
-    lidar.setReversion(true);
-    lidar.setFixedResolution(false);
 
-    //初始化  获取版本号及其它信息
-    bool ret = lidar.Initialize();
+	//雷达接口  首先初始化 
+	Nvilidar_UserConfigTypeDef  cfg;
+	CircleDataInfoTypeDef node_circle;
+	Nvilidar_DeviceInfo info;
+	static uint32_t  no_response_times = 0;
 
-    //开始启动雷达
-    if(ret)
-    {
-        ret = lidar.LidarTurnOn();
-    }
+	//获取默认参数  如需要修改 可以进行修改  
+	LidarDefaultUserConfig(cfg);
+	//配置串口号 默认串口配置为空字符串 
+	cfg.serialport_name = port;
 
-    //雷达点云图数据解析及处理
+	//初始化雷达 获取参数等等信息 
+	nvilidar::LidarDriverSerialport lidar(cfg);
+	if (false == lidar.LidarInit())		//初始化雷达  包括读参 配参 
+	{
+		return 0;
+	}
+	//启动雷达  
+	bool ret = lidar.StartScan();
+
+
+//    雷达点云图数据解析及处理
     while(ret && (nvilidar::isOK()))
     {
         LidarScan scan;
 
-        if(lidar.LidarSamplingProcess(scan))
+        if(lidar.waitCircleResponse(node_circle))
         {
+			no_response_times = 0;
+			//点集格式转换 
+			LidarSamplingData(cfg, node_circle, scan);
+
             for (size_t i = 0; i < scan.points.size(); i++)
             {
 //              float angle = scan.points.at(i).angle;
 //              float dis = scan.points.at(i).range;
 //              printf("a:%f,d:%f\n", angle, dis);
             }
-            nvilidar::console.message("Scan received[%llu]: %u ranges is [%f]Hz",
+           nvilidar::console.message("Scan received[%llu]: %u ranges is [%f]Hz",
                                              scan.stamp, (unsigned int)scan.points.size(),
                                              1.0 / scan.config.scan_time);
         }
         else
         {
-            nvilidar::console.warning("Failed to get Lidar Data");
-        }
-    }
+			no_response_times++;
+			if(no_response_times >= 5)
+			{
+				no_response_times = 0;
+			    nvilidar::console.warning("Failed to get Lidar Data");
 
-    lidar.LidarTurnOff();
-    lidar.LidarCloseHandle();
-    return 0;
+				break;
+			}
+        }
+
+		delayMS(5);		//此处必须要加sleep 否则会占用超高cpu 
+    }
+    lidar.LidarStopScan();      //停止扫描 
+    nvilidar::console.message("lidar is stopping......");
+    lidar.LidarCloseHandle();   //关闭连接 
+
+   return 0;
 }

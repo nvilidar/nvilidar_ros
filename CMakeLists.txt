@@ -15,22 +15,10 @@ set(SDK_PATH "./sdk/")
 
 FILE(GLOB SDK_SRC 
   "${SDK_PATH}/src/impl/*.h"
-  "${SDK_PATH}src/impl/console/*.h"
-  "${SDK_PATH}/src/impl/signal/*.h"
-  "${SDK_PATH}/src/impl/string/*.h"
-  "${SDK_PATH}/src/impl/thread/*.h"
-  "${SDK_PATH}/src/impl/timer/*.h"
-  "${SDK_PATH}/src/impl/angles/*.h"
-  "${SDK_PATH}/src/impl/socket/*.h"
-  "${SDK_PATH}/src/impl/serialport/include/serial/*.h"
-  "${SDK_PATH}/src/impl/serialport/include/serial/impl/*.h"
+  "${SDK_PATH}/src/impl/include/*.h"
+  "${SDK_PATH}/src/impl/serial/*.h"
   "${SDK_PATH}/src/nvilidar/*.h"
-  "${SDK_PATH}/src/impl/console/*.cpp"
-  "${SDK_PATH}/src/impl/timer/*.cpp"
-  "${SDK_PATH}/src/impl/socket/*.cpp"
-  "${SDK_PATH}/src/impl/serialport/src/*.cc"
-  "${SDK_PATH}/src/impl/serialport/src/impl/*.cc"
-  "${SDK_PATH}/src/impl/serialport/src/impl/list_ports/*.cc"
+  "${SDK_PATH}/src/impl/src/serial/*.cpp"
   "${SDK_PATH}/src/nvilidar/*.cpp"
 )
 
@@ -40,14 +28,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_SOURCE_DIR}/sdk/src/nvilidar
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/serialport/include
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/timer
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/thread
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/console
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/string
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/angles
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/signal
-  ${PROJECT_SOURCE_DIR}/sdk/src/impl/serialport/src/impl/*.cc
+  ${PROJECT_SOURCE_DIR}/sdk/src/impl/include
 )
 
 add_executable(nvilidar_node src/nvilidar_node.cpp  ${SDK_SRC})
