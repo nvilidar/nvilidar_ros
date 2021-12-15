@@ -5,13 +5,21 @@
 #include "nvilidar_protocol.h"
 #include <string>
 
-//其它
-#define DEFAULT_TIMEOUT     2000    //默认超时时间
 
+//======================================基本参数类型定义============================================ 
+
+//SDK版本号 
 #define NVILIDAR_SDKVerision     "1.0.2"
 
-//数据模式
-typedef void* (* pFUNC)(void *);
+//PI def
+#ifndef M_PI
+#define M_PI        3.14159265358979323846
+#endif 
+
+//其它
+#define NVILIDAR_DEFAULT_TIMEOUT     2000    //默认超时时间 正常协议  
+#define NVILIDAR_POINT_TIMEOUT		 2000	 //一圈点云的超时时间 比如10hz 则该超时时间需要大于100ms 才可以保证不会出错 
+
 
 //雷达型号
 enum
@@ -21,10 +29,12 @@ enum
 };
 
 
+//======================================基本数据类型定义============================================ 
+
 //雷达信息
 struct Nvilidar_PackageStateTypeDef
 {
-	bool m_SerialOpen;              //串口开启标记
+	bool m_CommOpen;              //串口开启标记
 	bool m_Scanning;                //正在扫描出图
 	uint8_t last_device_byte;       //上包接到的字节信息
 };
@@ -54,6 +64,9 @@ struct  Nvilidar_UserConfigTypeDef
 	std::string frame_id;				//ID
 	std::string serialport_name;		//串口名 
 	int    		serialport_baud;		//串口波特率 
+	std::string ip_addr;				//IP地址 
+	int    		lidar_udp_port;			//端口号 
+	int    		config_tcp_port;		//配置端口号 
 	bool		auto_reconnect;			//自动重连
     bool		reversion;				//倒置 反180度
 	bool		inverted;				//镜像 左右反相 
@@ -85,7 +98,7 @@ union Nvilidar_PackageBufTypeDef
 };
 
 //包信息
-struct Nvilidar_PointViewerPackageInfoTypeDef
+typedef struct 
 {
 	uint16_t packageIndex;         //单包采样点索引位置信息
 	Nvilidar_PackageBufTypeDef  packageBuffer;    //包信息（实际内容）
@@ -107,7 +120,21 @@ struct Nvilidar_PointViewerPackageInfoTypeDef
 	uint16_t  package0CIndex;      //0度角索引（目前协议为非单独封包）
 	uint64_t packageStamp;		   //接收完本包的时间 
 	uint16_t packagePointNum;	   //一包的点数信息 
-};
+}Nvilidar_PointViewerPackageInfoTypeDef;
+
+//接收信息 (只用于接收暂存 无其它用)
+typedef struct
+{
+	bool	recvFinishFlag;
+	Nvilidar_Protocol_DeviceInfo lidar_device_info;//雷达接收并且返回的数据  
+	Nvilidar_Protocol_GetPara    lidar_get_para;	//获取参数信息 
+	uint8_t     isHasSensitive;					//有信号质量信息
+	uint16_t    aimSpeed;						//转速信息 x100
+	uint32_t    samplingRate;					//采样率x1
+	int16_t     angleOffset;					//角度偏移x64
+	uint8_t     tailingLevel;					//拖尾等级
+	uint8_t     saveFlag;						//是否保存成功了 
+}NvilidarRecvInfoTypeDef;
 
 //一圈点信息 
 typedef struct
@@ -116,6 +143,57 @@ typedef struct
 	uint64_t  stopStamp;			//一圈结束时间戳 
 	std::vector<Nvilidar_Node_Info>  lidarCircleNodePoints;	//一圈点云图数据
 }CircleDataInfoTypeDef;
+
+
+
+//======================================输出数据信息============================================ 
+/**
+ * @brief The Laser Point struct
+ * @note angle unit: rad.\n
+ * range unit: meter.\n
+ */
+typedef struct {
+	/// lidar angle. unit(rad)
+	float angle;
+	/// lidar range. unit(m)
+	float range;
+	/// lidar intensity
+	float intensity;
+} NviLidarPoint;
+
+/**
+ * @brief A struct for returning configuration from the NVILIDAR
+ * @note angle unit: rad.\n
+ * time unit: second.\n
+ * range unit: meter.\n
+ */
+typedef struct {
+	/// Start angle for the laser scan [rad].  0 is forward and angles are measured clockwise when viewing NVILIDAR from the top.
+	float min_angle;
+	/// Stop angle for the laser scan [rad].   0 is forward and angles are measured clockwise when viewing NVILIDAR from the top.
+	float max_angle;
+	/// angle resoltuion [rad]
+	float angle_increment;
+	/// Scan resoltuion [s]
+	float time_increment;
+	/// Time between scans
+	float scan_time;
+	/// Minimum range [m]
+	float min_range;
+	/// Maximum range [m]
+	float max_range;
+} NviLidarConfig;
+
+
+typedef struct {
+	/// System time when first range was measured in nanoseconds
+	uint64_t stamp;
+	/// Array of lidar points
+	std::vector<NviLidarPoint> points;
+	/// Configuration of scan
+	NviLidarConfig config;
+} LidarScan;
+
 
 
 #endif

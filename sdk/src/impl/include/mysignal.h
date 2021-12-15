@@ -7,6 +7,7 @@
 #if defined(_WIN32)
 	#include <mmsystem.h>
 	#include <sysinfoapi.h>
+	#include <WinSock2.h>
 	#include <windows.h>
 #else 
 	#include <iostream>

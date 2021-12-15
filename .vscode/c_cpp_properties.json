@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/opt/ros/noetic/include/**",
+                "/usr/include/**",
+                "${workspaceFolder}/sdk/src/nvilidar",
+                "${workspaceFolder}/sdk/src/impl/include"
+            ],
+            "name": "ROS"
+        }
+    ],
+    "version": 4
+}

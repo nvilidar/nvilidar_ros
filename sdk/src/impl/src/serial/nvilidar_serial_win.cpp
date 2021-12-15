@@ -4,6 +4,7 @@
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <process.h> //_beginthreadex
+#include <WinSock2.h>
 #include <windows.h>
 
 static std::wstring stringToWString(const std::string &str)

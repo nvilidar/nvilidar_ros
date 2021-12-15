@@ -4,6 +4,7 @@
 #define _NVILIDAR_SERIAL_LIST_WIN
  
 #include <tchar.h>
+#include <WinSock2.h>
 #include <windows.h>
 #include <setupapi.h>
 #include <initguid.h>

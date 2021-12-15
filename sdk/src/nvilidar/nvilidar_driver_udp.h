@@ -2,16 +2,13 @@
 
 #include "nvilidar_def.h"
 #include "nvilidar_protocol.h"
-#include "nvilidar_config.h"
-#include "serial/nvilidar_serial.h"
+#include "socket/nvilidar_socket.h"
 #include <string>
 #include <vector>
 #include <stdint.h>
 
 #if defined(_WIN32)
 #include <conio.h>
-#include <WinSock2.h>
-#include <windows.h>
 #include <process.h>
 #include <tlhelp32.h>
 #include <sys/utime.h>
@@ -28,12 +25,6 @@
 #include <stdlib.h>
 #endif
 
-//串口列表信息 
-typedef struct 
-{
-	std::string portName;
-	std::string description;
-}NvilidarSerialPortInfo;
 
 //---定义库信息 VS系列的生成库文件  
 #ifdef WIN32
@@ -45,11 +36,11 @@ typedef struct
 namespace nvilidar
 {
     //lidar driver 
-	class  NVILIDAR_API LidarDriverSerialport
+	class  NVILIDAR_API LidarDriverUDP
     {
 		public:
-			LidarDriverSerialport(Nvilidar_UserConfigTypeDef cfg);                //构造函数
-			~LidarDriverSerialport();           //析构函数
+			LidarDriverUDP(Nvilidar_UserConfigTypeDef cfg);                //构造函数
+			~LidarDriverUDP();           //析构函数
 
 			bool LidarIsConnected();			//雷达是否连接
 			bool LidarGetScanState();			//获取传输状态  
@@ -61,7 +52,6 @@ namespace nvilidar
 
 			//串口 版本号等信息
 			std::string getSDKVersion();										//获取当前sdk版本号
-			static std::vector<NvilidarSerialPortInfo> getPortList();			//获取机器串口列表
 			bool StartScan(void);                           //启动扫图
 			bool StopScan(void);                            //停止扫描
 			bool Reset(void);								//雷达复位
@@ -92,10 +82,9 @@ namespace nvilidar
 			Nvilidar_PackageStateTypeDef   lidar_state;				//雷达状态
 
 		private:
-			bool LidarConnect(std::string portname, uint32_t baud = 921600);  //串口初始化
+			bool LidarConnect(std::string ip_addr, uint16_t port);  //串口初始化
 			void LidarDisconnect();      //关闭串口
-			bool SendSerial(const uint8_t *data, size_t size);      //发送串口接口  私有类
-			void FlushSerial();		//刷新串口数据  
+			bool SendUDP(const uint8_t *data, size_t size);      //发送接口  私有类 
 			bool SendCommand(uint8_t cmd, const void *payload = NULL,uint16_t payloadsize = 0);
 			void NormalDataUnpack(uint8_t *buf, uint16_t len);		//解包（普通数据解包）
 			void NormalDataAnalysis(Nvilidar_Protocol_NormalResponseData data);	
@@ -105,14 +94,14 @@ namespace nvilidar
 			//线程相关 
 			bool createThread();		//创建线程 
 			void closeThread();			//关闭线程 
-			bool waitNormalResponse(uint32_t timeout = NVILIDAR_POINT_TIMEOUT);	//等待雷达应答 一圈的点云数据 
+			bool waitNormalResponse(uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);	//等待雷达应答 
 			void setNormalResponseUnlock();	//解锁 
 			void setCircleResponseUnlock();	//解锁 
 			void LidarSamplingData(CircleDataInfoTypeDef info, LidarScan &outscan);		//拆包 
 
 			//----------------------串口类---------------------------
 
-			nvilidar_serial::Nvilidar_Serial serialport;
+			nvilidar_socket::Nvilidar_Socket_UDP socket_udp;
 
 			//-----------------------变量----------------------------
 			Nvilidar_UserConfigTypeDef     lidar_cfg;				//雷达型号

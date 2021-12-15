@@ -8,8 +8,10 @@ include_directories(src/impl/include)
 FILE(GLOB SDK_SRC 
   "src/impl/include/*.h"
   "src/impl/include/serial/*.h"
+  "src/impl/include/socket/*.h"
   "src/nvilidar/*.h"
   "src/impl/src/serial/*.cpp"
+  "src/impl/src/socket/*.cpp"
   "src/nvilidar/*.cpp"
 )
 

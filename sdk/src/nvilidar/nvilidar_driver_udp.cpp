@@ -1,16 +1,16 @@
-#include "nvilidar_driver_serialport.h"
-#include "serial/nvilidar_serial.h"
+#include "nvilidar_driver_udp.h"
+#include "socket/nvilidar_socket.h"
+#include "nvilidar_config.h"
 #include <list>
 #include <string>
 #include "myconsole.h"
 #include "mytimer.h"
 #include "mystring.h"
-#include "nvilidar_config.h"
 
 namespace nvilidar
 {
 	//构造函数
-	LidarDriverSerialport::LidarDriverSerialport(Nvilidar_UserConfigTypeDef cfg)
+	LidarDriverUDP::LidarDriverUDP(Nvilidar_UserConfigTypeDef cfg)
 	{
 		lidar_state.m_CommOpen = false;       //默认串口关闭
 		lidar_state.m_Scanning = false;         //默认扫描接口关闭
@@ -19,15 +19,14 @@ namespace nvilidar
 	}
 
 	//析构函数
-	LidarDriverSerialport::~LidarDriverSerialport()
+	LidarDriverUDP::~LidarDriverUDP()
 	{
-		LidarDisconnect();
 	}
 
 	//雷达是否连接
-	bool LidarDriverSerialport::LidarIsConnected()
+	bool LidarDriverUDP::LidarIsConnected()
 	{
-		if(lidar_state.m_CommOpen)
+		if (lidar_state.m_CommOpen)
 		{
 			return true;
 		}
@@ -35,21 +34,21 @@ namespace nvilidar
 	}
 
 	//初始化 获取参数等信息 
-	bool LidarDriverSerialport::LidarInitialialize()
+	bool LidarDriverUDP::LidarInitialialize()
 	{
 		Nvilidar_StoreConfigTypeDef store_para_read;		//读出的参数  
 
 		//判断串口参数是否合法  
-		if ((lidar_cfg.serialport_name.length() == 0) || (lidar_cfg.serialport_baud == 0))
+		if ((lidar_cfg.ip_addr.length() == 0) || (lidar_cfg.lidar_udp_port == 0))
 		{
-			return false;		//串口信息不合法 
+			return false;		//网络参数信息不合法 
 		}
 
 		//开始连接串口 
-		if (!LidarConnect(lidar_cfg.serialport_name, lidar_cfg.serialport_baud))
+		if (!LidarConnect(lidar_cfg.ip_addr, lidar_cfg.lidar_udp_port))
 		{
 			nvilidar::console.error("Error initializing NVILIDAR scanner.");
-			return false;		//串口连接失败 
+			return false;		//网络参数信息不合法 
 		}
 
 		//发送停止命令 
@@ -140,7 +139,7 @@ namespace nvilidar
 	}
 
 	//启动雷达  
-	bool LidarDriverSerialport::LidarTurnOn()
+	bool LidarDriverUDP::LidarTurnOn()
 	{
 		//启动雷达  
 		if (!StartScan())
@@ -164,7 +163,7 @@ namespace nvilidar
 	}
 
 	//启动雷达  
-	bool LidarDriverSerialport::LidarTurnOff()
+	bool LidarDriverUDP::LidarTurnOff()
 	{
 		//停止雷达输出 
 		StopScan();
@@ -175,8 +174,9 @@ namespace nvilidar
 		return true;
 	}
 
-	bool LidarDriverSerialport::LidarCloseHandle()
+	bool LidarDriverUDP::LidarCloseHandle()
 	{
+		lidar_state.m_CommOpen = false;
 		LidarDisconnect();
 		return true;
 	}
@@ -184,13 +184,8 @@ namespace nvilidar
 	//---------------------------------------私有类及接口---------------------------------
 
 	//启动雷达
-	bool LidarDriverSerialport::StartScan()
+	bool LidarDriverUDP::StartScan()
 	{
-		//串口有没有开
-		if (!lidar_state.m_CommOpen)
-		{
-			return false;
-		}
 		//是否正在运行
 		if (lidar_state.m_Scanning)
 		{
@@ -212,13 +207,10 @@ namespace nvilidar
 	}
 
 	//雷达停止
-	bool  LidarDriverSerialport::StopScan()
+	bool  LidarDriverUDP::StopScan()
 	{
 		//扫描标记清0
 		lidar_state.m_Scanning = false;
-
-		//清除数据  
-		FlushSerial();
 
 		//发送数据
 		SendCommand(NVILIDAR_CMD_STOP);
@@ -227,43 +219,33 @@ namespace nvilidar
 	}
 
 	//启动雷达串口
-	bool LidarDriverSerialport::LidarConnect(std::string portname, uint32_t baud)
+	bool LidarDriverUDP::LidarConnect(std::string ip_addr, uint16_t port)
 	{
-		serialport.serialInit(portname,921600);
-		serialport.serialOpen();
+		bool ret = false; 
+		socket_udp.udpInit(ip_addr.c_str(),port);
 		
-		if (serialport.isSerialOpen())
+		if (!socket_udp.isudpOpen())
 		{
-			lidar_state.m_CommOpen = true;
-
-			delayMS(100);
-			createThread();		//创建线程 接收数据 
-
-			return true;
-		}
-		else
-		{
-			lidar_state.m_CommOpen = false;
-
 			return false;
 		}
+
+		lidar_state.m_CommOpen = true;
+
+		delayMS(100);
+		createThread();		//创建线程 接收数据 
+
+		return true;
 	}
 
 	//关闭雷达串口接口 
-	void LidarDriverSerialport::LidarDisconnect()
+	void LidarDriverUDP::LidarDisconnect()
 	{
 		lidar_state.m_CommOpen = false;
-		serialport.serialClose();	
 	}
 
 	//发送串口
-	bool LidarDriverSerialport::SendSerial(const uint8_t *data, size_t size)
+	bool LidarDriverUDP::SendUDP(const uint8_t *data, size_t size)
 	{
-		if (!lidar_state.m_CommOpen)
-		{
-			return false;
-		}
-
 		if (data == NULL || size == 0)
 		{
 			return false;
@@ -274,7 +256,7 @@ namespace nvilidar
 		size_t r;
 		while (size) 
 		{
-			r = serialport.serialWriteData(data,size);
+			r = socket_udp.udpWriteData(data,size);
 			if (r < 1) 
 			{
 				return false;
@@ -287,19 +269,8 @@ namespace nvilidar
 		return true;
 	}
 
-	//刷新串口数据 
-	void LidarDriverSerialport::FlushSerial()
-	{
-		if (!lidar_state.m_CommOpen)
-		{
-			return;
-		}
-
-		serialport.serialFlush();
-	}
-
 	//雷达发送数据
-	bool LidarDriverSerialport::SendCommand(uint8_t cmd, const void *payload, uint16_t payloadsize)
+	bool LidarDriverUDP::SendCommand(uint8_t cmd, const void *payload, uint16_t payloadsize)
 	{
 		uint8_t pkt_header[sizeof(Nvilidar_ProtocolHeader)];
 		Nvilidar_ProtocolHeader *header = reinterpret_cast<Nvilidar_ProtocolHeader *>(pkt_header);
@@ -328,24 +299,24 @@ namespace nvilidar
 			uint16_t sizebyte = (uint8_t)(payloadsize);
 
 			//开始进行发送
-			SendSerial(pkt_header, 4);       //包头 长度信息
-			SendSerial((const uint8_t *)payload, sizebyte);   //发送数据信息
-			SendSerial(&checksum, 1);         //校验值
-			SendSerial(&pkt_tail, 1);         //包尾
+			SendUDP(pkt_header, 4);       //包头 长度信息
+			SendUDP((const uint8_t *)payload, sizebyte);   //发送数据信息
+			SendUDP(&checksum, 1);         //校验值
+			SendUDP(&pkt_tail, 1);         //包尾
 		}
 		else
 		{
 			//短命令
 			header->startByte = NVILIDAR_START_BYTE_SHORT_CMD;
 			header->cmd = cmd;
-			SendSerial(pkt_header, 2);
+			SendUDP(pkt_header, 2);
 		}
 
 		return true;
 	}
 
 	//普通数据解包 
-	void LidarDriverSerialport::NormalDataUnpack(uint8_t *buf, uint16_t len)
+	void LidarDriverUDP::NormalDataUnpack(uint8_t *buf, uint16_t len)
 	{
 		static uint16_t  recvPos = 0;											//当前接到的位置信息
 		static uint8_t   crc = 0;												//CRC校验值 
@@ -434,7 +405,7 @@ namespace nvilidar
 	}
 
 	//协议解析  
-	void LidarDriverSerialport::NormalDataAnalysis(Nvilidar_Protocol_NormalResponseData data)
+	void LidarDriverUDP::NormalDataAnalysis(Nvilidar_Protocol_NormalResponseData data)
 	{
 		switch (data.cmd)
 		{
@@ -554,7 +525,7 @@ namespace nvilidar
 	}
 
 	//点云数据解包 
-	bool LidarDriverSerialport::PointDataUnpack(uint8_t *buf,uint16_t len)
+	bool LidarDriverUDP::PointDataUnpack(uint8_t *buf,uint16_t len)
 	{
 		static Nvilidar_PointViewerPackageInfoTypeDef  pack_info;        //包信息
 
@@ -890,7 +861,7 @@ namespace nvilidar
 	}
 
 	//点云数据解包 
-	void LidarDriverSerialport::PointDataAnalysis(Nvilidar_PointViewerPackageInfoTypeDef pack_point)
+	void LidarDriverUDP::PointDataAnalysis(Nvilidar_PointViewerPackageInfoTypeDef pack_point)
 	{
 		//点集信息 
 		static std::vector<Nvilidar_Node_Info> point_list;
@@ -1046,49 +1017,13 @@ namespace nvilidar
 	//-------------------------------------对外接口信息-------------------------------------------
 
 	//获取SDK版本号
-	std::string LidarDriverSerialport::getSDKVersion()
+	std::string LidarDriverUDP::getSDKVersion()
 	{
 		return NVILIDAR_SDKVerision;
 	}
 
-	//获取串口列表信息
-	std::vector<NvilidarSerialPortInfo> LidarDriverSerialport::getPortList()
-	{
-		std::vector<NvilidarSerialPortInfo> nvi_serial_list;
-		NvilidarSerialPortInfo nvi_serial;
-
-		nvi_serial_list.clear();
-
-	   std::vector<NvilidarPortInfo> lst = nvilidar_list_ports();
-
-		#if defined (_WIN32)
-			for (std::vector<NvilidarPortInfo>::iterator it = lst.begin(); it != lst.end(); it++)
-			{
-				nvi_serial.portName = (*it).port;
-				nvi_serial.description = (*it).description;
-
-				nvi_serial_list.push_back(nvi_serial);
-			}
-		#else
-			for (std::vector<NvilidarPortInfo>::iterator it = lst.begin(); it != lst.end(); it++)
-			{
-				//printf("port:%s,des:%s\n",(*it).port.c_str(),(*it).description.c_str());
-				//usb check
-				if ((*it).port.find("ttyACM") != std::string::npos)      //linux ttyacm
-				{
-					nvi_serial.portName = (*it).port;
-					nvi_serial.description = (*it).description;
-
-					nvi_serial_list.push_back(nvi_serial);
-				}
-			}
-		#endif
-
-		return nvi_serial_list;
-	}
-
 	//设置雷达是否带信号质量信息
-	bool LidarDriverSerialport::SetIntensities(const uint8_t has_intensity, uint32_t timeout)
+	bool LidarDriverUDP::SetIntensities(const uint8_t has_intensity, uint32_t timeout)
 	{
 		recv_info.recvFinishFlag = false;
 
@@ -1121,7 +1056,7 @@ namespace nvilidar
 	}
 
 	//获取设备类型信息
-	bool LidarDriverSerialport::GetDeviceInfo(Nvilidar_DeviceInfo &info, uint32_t timeout)
+	bool LidarDriverUDP::GetDeviceInfo(Nvilidar_DeviceInfo &info, uint32_t timeout)
 	{
 		recv_info.recvFinishFlag = false;
 
@@ -1165,7 +1100,7 @@ namespace nvilidar
 
 
 	//复位雷达
-	bool LidarDriverSerialport::Reset(void)
+	bool LidarDriverUDP::Reset(void)
 	{
 		recv_info.recvFinishFlag = false;
 
@@ -1186,7 +1121,7 @@ namespace nvilidar
 	}
 
 	//设置雷达转速信息
-	bool LidarDriverSerialport::SetScanMotorSpeed(uint16_t frequency, uint16_t &ret_frequency,
+	bool LidarDriverUDP::SetScanMotorSpeed(uint16_t frequency, uint16_t &ret_frequency,
 		uint32_t timeout)
 	{
 		recv_info.recvFinishFlag = false;
@@ -1219,7 +1154,7 @@ namespace nvilidar
 	}
 
 	//增加雷达采样率
-	bool LidarDriverSerialport::SetSamplingRate(uint32_t rate_write, uint32_t &rate,
+	bool LidarDriverUDP::SetSamplingRate(uint32_t rate_write, uint32_t &rate,
 		uint32_t timeout)   //雷达采样率增加
 	{
 		recv_info.recvFinishFlag = false;
@@ -1253,7 +1188,7 @@ namespace nvilidar
 
 
 	//读取角度偏移
-	bool LidarDriverSerialport::GetZeroOffsetAngle(int16_t &angle, uint32_t timeout)
+	bool LidarDriverUDP::GetZeroOffsetAngle(int16_t &angle, uint32_t timeout)
 	{
 		recv_info.recvFinishFlag = false;
 
@@ -1284,7 +1219,7 @@ namespace nvilidar
 	}
 
 	//设置角度偏移
-	bool LidarDriverSerialport::SetZeroOffsetAngle(int16_t angle_set, int16_t &angle,
+	bool LidarDriverUDP::SetZeroOffsetAngle(int16_t angle_set, int16_t &angle,
 		uint32_t timeout)
 	{
 		recv_info.recvFinishFlag = false;
@@ -1317,7 +1252,7 @@ namespace nvilidar
 	}
 
 	//设置拖尾等级
-	bool LidarDriverSerialport::SetTrailingLevel(uint8_t tailing_set, uint8_t &tailing,
+	bool LidarDriverUDP::SetTrailingLevel(uint8_t tailing_set, uint8_t &tailing,
 		uint32_t  timeout)
 	{
 		recv_info.recvFinishFlag = false;
@@ -1349,7 +1284,7 @@ namespace nvilidar
 	}
 
 	//获取雷达配置信息
-	bool LidarDriverSerialport::GetLidarCfg(Nvilidar_StoreConfigTypeDef &info, uint32_t timeout)
+	bool LidarDriverUDP::GetLidarCfg(Nvilidar_StoreConfigTypeDef &info, uint32_t timeout)
 	{
 		recv_info.recvFinishFlag = false;
 
@@ -1384,7 +1319,7 @@ namespace nvilidar
 	}
 
 	//保存雷达参数
-	bool LidarDriverSerialport::SaveCfg(bool &flag, uint32_t timeout)
+	bool LidarDriverUDP::SaveCfg(bool &flag, uint32_t timeout)
 	{
 		recv_info.recvFinishFlag = false;
 
@@ -1416,14 +1351,14 @@ namespace nvilidar
 	}
 
 	//获取当前扫描状态
-	bool LidarDriverSerialport::LidarGetScanState()
+	bool LidarDriverUDP::LidarGetScanState()
 	{
 		return lidar_state.m_Scanning;
 	}
 
 	//---------------------------------------------多线程API----------------------------------------------
 	//初始化线程 
-	bool LidarDriverSerialport::createThread()
+	bool LidarDriverUDP::createThread()
 	{
 		#if	defined(_WIN32)
 			/*
@@ -1445,7 +1380,7 @@ namespace nvilidar
 			*dwCreationFlags	线程标记，如为0，则创建后立即运行
 			*lpThreadId	LPDWORD为返回值类型，一般传递地址去接收线程的标识符，一般设为null
 			*/
-			_thread = CreateThread(NULL, 0, LidarDriverSerialport::periodThread, this, 0, NULL);
+			_thread = CreateThread(NULL, 0, LidarDriverUDP::periodThread, this, 0, NULL);
 			if (_thread == NULL)
 			{
 				return false;
@@ -1493,7 +1428,7 @@ namespace nvilidar
     		pthread_mutex_init(&_mutex_point, NULL);
 
 			/* 创建线程pthread */
-     		if(-1 == pthread_create(&_thread, NULL, LidarDriverSerialport::periodThread, this))
+     		if(-1 == pthread_create(&_thread, NULL, LidarDriverUDP::periodThread, this))
      		{
 				 _thread = -1;
          		return false;
@@ -1505,7 +1440,7 @@ namespace nvilidar
 	}
 
 	//关闭线程 
-	void LidarDriverSerialport::closeThread()
+	void LidarDriverUDP::closeThread()
 	{
 		#if	defined(_WIN32)
 			CloseHandle(_thread);
@@ -1522,7 +1457,7 @@ namespace nvilidar
 	}
 
 	//等待事件 
-	bool LidarDriverSerialport::waitNormalResponse(uint32_t timeout)
+	bool LidarDriverUDP::waitNormalResponse(uint32_t timeout)
 	{
 		#if	defined(_WIN32)
 			DWORD state;
@@ -1557,7 +1492,7 @@ namespace nvilidar
 	}
 
 	//等待事件 解锁 
-	void LidarDriverSerialport::setNormalResponseUnlock()
+	void LidarDriverUDP::setNormalResponseUnlock()
 	{
 		#if	defined(_WIN32)
 			SetEvent(_event_analysis);			// 重置事件，让其他线程继续等待（相当于获取锁）
@@ -1569,7 +1504,7 @@ namespace nvilidar
 	}
 
 	//等待一圈点云 事件 
-	bool LidarDriverSerialport::LidarSamplingProcess(LidarScan &scan, uint32_t timeout)
+	bool LidarDriverUDP::LidarSamplingProcess(LidarScan &scan, uint32_t timeout)
 	{
 		//等待解锁  即一圈点数据完成了  
 		#if	defined(_WIN32)
@@ -1608,9 +1543,9 @@ namespace nvilidar
 
 		return false;
 	}
-	
+
 	//采样数据分析  
-	void LidarDriverSerialport::LidarSamplingData(CircleDataInfoTypeDef info, LidarScan &outscan)
+	void LidarDriverUDP::LidarSamplingData(CircleDataInfoTypeDef info, LidarScan &outscan)
 	{
 		uint32_t all_nodes_counts = 0;		//所有点数  不做截取等用法 
 		uint64_t scan_time = 0;				//2圈点的扫描间隔 
@@ -1739,7 +1674,7 @@ namespace nvilidar
 	}
 
 	//等待一圈点云 事件 解锁 
-	void LidarDriverSerialport::setCircleResponseUnlock()
+	void LidarDriverUDP::setCircleResponseUnlock()
 	{
 		#if	defined(_WIN32)
 			SetEvent(_event_circle);			// 重置事件，让其他线程继续等待（相当于获取锁）
@@ -1752,13 +1687,13 @@ namespace nvilidar
 
 	//线程进程 分win32和linux等   
 	#if	defined(_WIN32)
-		DWORD WINAPI  LidarDriverSerialport::periodThread(LPVOID lpParameter)
+		DWORD WINAPI  LidarDriverUDP::periodThread(LPVOID lpParameter)
 		{
 			static uint8_t recv_data[8192];
 			size_t recv_len = 0;
 
 			//在线程中要做的事情
-			LidarDriverSerialport *pObj = (LidarDriverSerialport *)lpParameter;   //传入的参数转化为类对象指针
+			LidarDriverUDP *pObj = (LidarDriverUDP *)lpParameter;   //传入的参数转化为类对象指针
 
 			while (pObj->lidar_state.m_CommOpen)
 			{	
@@ -1766,7 +1701,7 @@ namespace nvilidar
 				if (! pObj->lidar_state.m_Scanning)	//点云数据包 
 				{
 					//读串口接收数据长度 
-					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
+					recv_len = pObj->socket_udp.udpReadData(recv_data, 8192);
 					if(recv_len > 0)
 					{
 						pObj->NormalDataUnpack(recv_data, recv_len);
@@ -1777,7 +1712,7 @@ namespace nvilidar
 				else 
 				{
 					//读串口接收数据长度 
-					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
+					recv_len = pObj->socket_udp.udpReadData(recv_data, 8192);
 					if (recv_len > 0)
 					{
 						pObj->PointDataUnpack(recv_data, recv_len);
@@ -1789,13 +1724,13 @@ namespace nvilidar
 		}
 	#else 
 		/* 定义线程pthread */
-	   	void * LidarDriverSerialport::periodThread(void *lpParameter)       
+	   	void * LidarDriverUDP::periodThread(void *lpParameter)
 		{
 			static uint8_t recv_data[8192];
 			size_t recv_len = 0;
 
 			//在线程中要做的事情
-			LidarDriverSerialport *pObj = (LidarDriverSerialport *)lpParameter;   //传入的参数转化为类对象指针
+			LidarDriverUDP *pObj = (LidarDriverUDP *)lpParameter;   //传入的参数转化为类对象指针
 
 			while (pObj->lidar_state.m_CommOpen)
 			{	
@@ -1803,7 +1738,7 @@ namespace nvilidar
 				if (! pObj->lidar_state.m_Scanning)	//点云数据包 
 				{
 					//读串口接收数据长度 
-					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
+					recv_len = pObj->socket_udp.udpReadData(recv_data, 8192);
 					if(recv_len > 0)
 					{
 						pObj->NormalDataUnpack(recv_data, recv_len);
@@ -1814,7 +1749,7 @@ namespace nvilidar
 				else 
 				{
 					//读串口接收数据长度 
-					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
+					recv_len = pObj->socket_udp.udpReadData(recv_data, 8192);
 					if(recv_len > 0)
 					{
 						pObj->PointDataUnpack(recv_data, recv_len);

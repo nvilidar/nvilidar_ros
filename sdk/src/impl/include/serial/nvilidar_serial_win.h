@@ -8,6 +8,7 @@
 #include <string.h>  /* String function definitions */
 #include <process.h> //_beginthreadex
 #include <tchar.h>   //tchar
+#include <WinSock2.h>
 #include <windows.h>
 
 #define NVILIDAR_SERIAL_API __declspec(dllexport)

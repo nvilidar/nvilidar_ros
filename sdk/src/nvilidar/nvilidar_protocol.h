@@ -136,6 +136,13 @@ struct Nvilidar_Protocol_NormalResponseData
 	uint8_t	 dataInfo[1024];	//1k ram 
 };
 
+//雷达配置信息
+//struct Nvilidar_CfgInfo      
+//{
+//    uint16_t sensitivity;       //灵敏度
+//    uint16_t laserLight;        //雷达亮度
+//    uint32_t samplingRate;      //采样率
+//};
 
 //读雷达信息模式
 struct Nvilidar_Protocol_GetPara

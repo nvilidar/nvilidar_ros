@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #if defined(_WIN32)
+	#include <WinSock2.h>
     #include <windows.h>
     #include <iostream>
     #if defined(_MSC_VER)

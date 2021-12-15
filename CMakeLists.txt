@@ -16,9 +16,10 @@ set(SDK_PATH "./sdk/")
 FILE(GLOB SDK_SRC 
   "${SDK_PATH}/src/impl/*.h"
   "${SDK_PATH}/src/impl/include/*.h"
-  "${SDK_PATH}/src/impl/serial/*.h"
+  "${SDK_PATH}/src/impl/include/serial/*.h"
   "${SDK_PATH}/src/nvilidar/*.h"
   "${SDK_PATH}/src/impl/src/serial/*.cpp"
+  "${SDK_PATH}/src/impl/src/socket/*.cpp"
   "${SDK_PATH}/src/nvilidar/*.cpp"
 )
 
