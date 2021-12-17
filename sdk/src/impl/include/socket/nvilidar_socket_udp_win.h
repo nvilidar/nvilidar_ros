@@ -16,12 +16,12 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#define NVILIDAR_SOCKET_API __declspec(dllexport)
+#define NVILIDAR_SOCKET_UDP_API __declspec(dllexport)
 
 
 namespace nvilidar_socket
 {
-    class NVILIDAR_SOCKET_API Nvilidar_Socket_UDP
+    class NVILIDAR_SOCKET_UDP_API Nvilidar_Socket_UDP
     {
     public:
 		Nvilidar_Socket_UDP();

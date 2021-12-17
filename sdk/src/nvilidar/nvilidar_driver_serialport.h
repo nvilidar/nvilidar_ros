@@ -2,11 +2,11 @@
 
 #include "nvilidar_def.h"
 #include "nvilidar_protocol.h"
-#include "nvilidar_config.h"
 #include "serial/nvilidar_serial.h"
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <math.h>
 
 #if defined(_WIN32)
 #include <conio.h>
@@ -37,20 +37,21 @@ typedef struct
 
 //---定义库信息 VS系列的生成库文件  
 #ifdef WIN32
-	#define NVILIDAR_API __declspec(dllexport)
+	#define NVILIDAR_DRIVER_SERIAL_API __declspec(dllexport)
 #else
-	#define NVILIDAR_API
+	#define NVILIDAR_DRIVER_SERIAL_API
 #endif // ifdef WIN32
 
 namespace nvilidar
 {
     //lidar driver 
-	class  NVILIDAR_API LidarDriverSerialport
+	class  NVILIDAR_DRIVER_SERIAL_API LidarDriverSerialport
     {
 		public:
-			LidarDriverSerialport(Nvilidar_UserConfigTypeDef cfg);                //构造函数
+			LidarDriverSerialport();                //构造函数
 			~LidarDriverSerialport();           //析构函数
 
+			void LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg);
 			bool LidarIsConnected();			//雷达是否连接
 			bool LidarGetScanState();			//获取传输状态  
 			bool LidarInitialialize();			//雷达初始化 获取参数配置参数等 

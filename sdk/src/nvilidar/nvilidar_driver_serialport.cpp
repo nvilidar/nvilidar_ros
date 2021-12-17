@@ -5,23 +5,26 @@
 #include "myconsole.h"
 #include "mytimer.h"
 #include "mystring.h"
-#include "nvilidar_config.h"
 
 namespace nvilidar
 {
 	//构造函数
-	LidarDriverSerialport::LidarDriverSerialport(Nvilidar_UserConfigTypeDef cfg)
+	LidarDriverSerialport::LidarDriverSerialport()
 	{
 		lidar_state.m_CommOpen = false;       //默认串口关闭
 		lidar_state.m_Scanning = false;         //默认扫描接口关闭
-
-		lidar_cfg = cfg;                   //配置参数生效
 	}
 
 	//析构函数
 	LidarDriverSerialport::~LidarDriverSerialport()
 	{
 		LidarDisconnect();
+	}
+
+	//加载参数 
+	void LidarDriverSerialport::LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg)
+	{
+		lidar_cfg = cfg;                   //配置参数生效
 	}
 
 	//雷达是否连接

@@ -16,7 +16,7 @@
 
 namespace nvilidar
 {
-	bool runnig_state = true;
+	bool nvilidar_running_state = true;
 
 #if defined(_WIN32)
 
@@ -25,7 +25,7 @@ namespace nvilidar
 		if (signal == CTRL_C_EVENT)
 		{
 			//printf("key press!");
-			runnig_state = false;
+			nvilidar_running_state = false;
 		}
 		return true;
 	}
@@ -42,7 +42,7 @@ namespace nvilidar
 
 	inline bool isOK()
 	{
-		return runnig_state;
+		return nvilidar_running_state;
 	}
 #else 
 	void consoleHandler( int signal)
@@ -50,7 +50,7 @@ namespace nvilidar
 		if (signal == SIGINT)
 		{
 			//printf("key press!");
-			runnig_state = false;
+			nvilidar_running_state = false;
 		}
 	}
 
@@ -63,7 +63,7 @@ namespace nvilidar
 
 	inline bool isOK()
 	{
-		return runnig_state;
+		return nvilidar_running_state;
 	}
 #endif 
 

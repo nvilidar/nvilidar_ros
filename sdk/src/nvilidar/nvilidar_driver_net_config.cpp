@@ -9,17 +9,20 @@
 namespace nvilidar
 {
 	//构造函数
-	LidarDriverNetConfig::LidarDriverNetConfig(Nvilidar_UserConfigTypeDef cfg)
+	LidarDriverNetConfig::LidarDriverNetConfig()
 	{
 		m_CommOpen = false;       //默认串口关闭
-
-		net_config_cfg = cfg;                   //配置参数生效
 	}
 
 	//析构函数
 	LidarDriverNetConfig::~LidarDriverNetConfig()
 	{
 		NetConfigDisconnect();
+	}
+
+	void LidarDriverNetConfig::LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg)
+	{
+		net_config_cfg = cfg;                   //配置参数生效
 	}
 
 	//配置参数信息 

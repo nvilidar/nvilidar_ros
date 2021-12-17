@@ -1,6 +1,5 @@
 #include "nvilidar_driver_udp.h"
 #include "socket/nvilidar_socket.h"
-#include "nvilidar_config.h"
 #include <list>
 #include <string>
 #include "myconsole.h"
@@ -10,17 +9,21 @@
 namespace nvilidar
 {
 	//构造函数
-	LidarDriverUDP::LidarDriverUDP(Nvilidar_UserConfigTypeDef cfg)
+	LidarDriverUDP::LidarDriverUDP()
 	{
 		lidar_state.m_CommOpen = false;       //默认串口关闭
 		lidar_state.m_Scanning = false;         //默认扫描接口关闭
-
-		lidar_cfg = cfg;                   //配置参数生效
 	}
 
 	//析构函数
 	LidarDriverUDP::~LidarDriverUDP()
 	{
+	}
+
+	//加载参数 
+	void LidarDriverUDP::LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg)
+	{
+		lidar_cfg = cfg;                   //配置参数生效
 	}
 
 	//雷达是否连接
@@ -49,7 +52,7 @@ namespace nvilidar
 		{
 			nvilidar::console.error("Error initializing NVILIDAR scanner.");
 			return false;		//网络参数信息不合法 
-		}
+		}	
 
 		//发送停止命令 
 		StopScan();

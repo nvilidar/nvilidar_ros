@@ -69,20 +69,21 @@ struct Nvilidar_NetConfig_Protocol_NormalResponseData
 
 //---定义库信息 VS系列的生成库文件  
 #ifdef WIN32
-	#define NVILIDAR_API __declspec(dllexport)
+	#define NVILIDAR_NET_CONFIG_API __declspec(dllexport)
 #else
-	#define NVILIDAR_API
+	#define NVILIDAR_NET_CONFIG_API
 #endif // ifdef WIN32
 
 namespace nvilidar
 {
     //lidar driver 
-	class  NVILIDAR_API LidarDriverNetConfig
+	class  NVILIDAR_NET_CONFIG_API LidarDriverNetConfig
     {
 		public:
-			LidarDriverNetConfig(Nvilidar_UserConfigTypeDef cfg);                //构造函数
+			LidarDriverNetConfig();                //构造函数
 			~LidarDriverNetConfig();           //析构函数
 
+			void LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg);
 			bool LidarNetConfigWrite(std::string ip,std::string gate,std::string mask);
     		bool LidarNetConfigRead(std::string &ip,std::string &gate,std::string &mask);
 			bool LidarNetConfigConnect();

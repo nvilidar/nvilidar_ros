@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <math.h>
 
 #if defined(_WIN32)
 #include <conio.h>
@@ -28,20 +29,21 @@
 
 //---定义库信息 VS系列的生成库文件  
 #ifdef WIN32
-	#define NVILIDAR_API __declspec(dllexport)
+	#define NVILIDAR_DRIVER_UDP_API __declspec(dllexport)
 #else
-	#define NVILIDAR_API
+	#define NVILIDAR_DRIVER_UDP_API
 #endif // ifdef WIN32
 
 namespace nvilidar
 {
     //lidar driver 
-	class  NVILIDAR_API LidarDriverUDP
+	class  NVILIDAR_DRIVER_UDP_API LidarDriverUDP
     {
 		public:
-			LidarDriverUDP(Nvilidar_UserConfigTypeDef cfg);                //构造函数
+			LidarDriverUDP();                //构造函数
 			~LidarDriverUDP();           //析构函数
 
+			void LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg);	//加载参数  替代构造函数  
 			bool LidarIsConnected();			//雷达是否连接
 			bool LidarGetScanState();			//获取传输状态  
 			bool LidarInitialialize();			//雷达初始化 获取参数配置参数等 
