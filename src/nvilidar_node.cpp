@@ -54,9 +54,9 @@ int main(int argc, char * argv[])
 
     //更新数据 用网络或者串口 
     #if 0
-        nvilidar::LidarProcess laser(USE_SOCKET,"192.168.1.200", 8100);
+        nvilidar::LidarProcess laser(USE_SOCKET,cfg.ip_addr, cfg.lidar_udp_port);
     #else 
-        nvilidar::LidarProcess laser(USE_SERIALPORT,"/dev/nvilidar",921600);
+        nvilidar::LidarProcess laser(USE_SERIALPORT,cfg.serialport_name,cfg.serialport_baud);
     #endif 
 
     //根据配置 重新加载参数 
@@ -91,7 +91,7 @@ int main(int argc, char * argv[])
             start_scan_time.sec = scan.stamp/1000000000ul;
             start_scan_time.nsec = scan.stamp%1000000000ul;
             scan_msg.header.stamp = start_scan_time;
-            scan_msg.header.frame_id = "laser_frame";
+            scan_msg.header.frame_id = cfg.frame_id;
             scan_msg.angle_min =(scan.config.min_angle);
             scan_msg.angle_max = (scan.config.max_angle);
             scan_msg.angle_increment = (scan.config.angle_increment);

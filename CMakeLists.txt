@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(nvilidar_ros)
+project(toflidar_ros)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 #add_definitions(-std=c++11) # Use C++11
 
@@ -17,10 +17,10 @@ FILE(GLOB SDK_SRC
   "${SDK_PATH}/src/impl/*.h"
   "${SDK_PATH}/src/impl/include/*.h"
   "${SDK_PATH}/src/impl/include/serial/*.h"
-  "${SDK_PATH}/src/nvilidar/*.h"
+  "${SDK_PATH}/src/toflidar/*.h"
   "${SDK_PATH}/src/impl/src/serial/*.cpp"
   "${SDK_PATH}/src/impl/src/socket/*.cpp"
-  "${SDK_PATH}/src/nvilidar/*.cpp"
+  "${SDK_PATH}/src/toflidar/*.cpp"
 )
 
 catkin_package()
@@ -28,21 +28,21 @@ catkin_package()
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/src
-  ${PROJECT_SOURCE_DIR}/sdk/src/nvilidar
+  ${PROJECT_SOURCE_DIR}/sdk/src/toflidar
   ${PROJECT_SOURCE_DIR}/sdk/src/impl/include
 )
 
-add_executable(nvilidar_node src/nvilidar_node.cpp  ${SDK_SRC})
-add_executable(nvilidar_client src/nvilidar_client.cpp)
+add_executable(toflidar_node src/toflidar_node.cpp  ${SDK_SRC})
+add_executable(toflidar_client src/toflidar_client.cpp)
 
-target_link_libraries(nvilidar_node
+target_link_libraries(toflidar_node
    ${catkin_LIBRARIES} 
  )
-target_link_libraries(nvilidar_client
+target_link_libraries(toflidar_client
    ${catkin_LIBRARIES} 
  )
 
-install(TARGETS nvilidar_node nvilidar_client
+install(TARGETS toflidar_node toflidar_client
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
