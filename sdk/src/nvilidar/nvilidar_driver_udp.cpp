@@ -24,6 +24,7 @@ namespace nvilidar
 	void LidarDriverUDP::LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg)
 	{
 		lidar_cfg = cfg;                   //配置参数生效
+		lidar_filter.LidarFilterLoadPara(cfg);	//加载参数 进过滤信息 
 	}
 
 	//雷达是否连接
@@ -1537,6 +1538,8 @@ namespace nvilidar
 
 			if(0 == state)
 			{
+				//一圈数据  输出后 是否做其它数据 
+				lidar_filter.LidarJumpFilter(circleDataInfo.lidarCircleNodePoints);
 				//点集格式转换 
 				LidarSamplingData(circleDataInfo, scan);
 

@@ -7,7 +7,7 @@
 #include "nvilidar_def.h"
 
 using namespace nvilidar;
-#define ROSVerision "1.0.4"
+#define ROSVerision "1.0.5"
 
 
 int main(int argc, char * argv[]) 
@@ -29,7 +29,7 @@ int main(int argc, char * argv[])
     Nvilidar_UserConfigTypeDef cfg;
     bool use_socket = false;        //默认不用socket 
 
-    //读取雷达配置 从rviz文件内 如果里面有配置对应参数  则走里面的数据。如果没有，则直接取“nvilidar_dataprocess.h”里面的默认参数配置信息
+    //读取雷达配置 从rviz文件内 如果里面有配置对应参数  则走里面的数据。如果没有，则直接取函数第3个默认参数配置信息
     nh_private.param<std::string>("serialport_name", cfg.serialport_name, "dev/nvilidar"); 
     nh_private.param<int>("serialport_baud", cfg.serialport_baud, 921600);
     nh_private.param<std::string>("ip_addr", cfg.ip_addr, "192.168.1.200");  
@@ -51,6 +51,10 @@ int main(int argc, char * argv[])
     nh_private.param<double>("angle_offset",  cfg.angle_offset, 0.0);
     nh_private.param<bool>("single_channel",  cfg.single_channel, false);
     nh_private.param<std::string>("ignore_array_string",  cfg.ignore_array_string, "");
+    //过滤参数
+    nh_private.param<bool>("filter_jump_enable",  cfg.filter_jump_enable, true);
+    nh_private.param<int>("filter_jump_value_min",  cfg.filter_jump_value_min, 3);
+    nh_private.param<int>("filter_jump_value_max",  cfg.filter_jump_value_max, 50);
 
     //更新数据 用网络或者串口 
     #if 0

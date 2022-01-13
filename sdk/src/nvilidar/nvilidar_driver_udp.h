@@ -3,6 +3,7 @@
 #include "nvilidar_def.h"
 #include "nvilidar_protocol.h"
 #include "socket/nvilidar_socket.h"
+#include "nvilidar_filter.h"
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -101,9 +102,12 @@ namespace nvilidar
 			void setCircleResponseUnlock();	//解锁 
 			void LidarSamplingData(CircleDataInfoTypeDef info, LidarScan &outscan);		//拆包 
 
-			//----------------------串口类---------------------------
+			//----------------------网络类---------------------------
 
 			nvilidar_socket::Nvilidar_Socket_UDP socket_udp;
+
+			//-----------------------过滤信息------------------------
+			nvilidar::LidarFilter lidar_filter;
 
 			//-----------------------变量----------------------------
 			Nvilidar_UserConfigTypeDef     lidar_cfg;				//雷达型号

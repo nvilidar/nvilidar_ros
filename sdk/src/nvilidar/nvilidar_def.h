@@ -9,7 +9,7 @@
 //======================================基本参数类型定义============================================ 
 
 //SDK版本号 
-#define NVILIDAR_SDKVerision     "1.0.2"
+#define NVILIDAR_SDKVerision     "1.0.5"
 
 //PI def
 #ifndef M_PI
@@ -87,6 +87,10 @@ struct  Nvilidar_UserConfigTypeDef
 	bool 		resolution_fixed;		//是否固定角分辨率 
 	Nvilidar_DeviceInfo			deviceInfo;	//数据信息 
 	Nvilidar_StoreConfigTypeDef	storePara;	//存储的参数信息 
+
+	bool 		filter_jump_enable;		//是否允许过滤 
+	int 		filter_jump_value_min;	//过滤点最小值 
+	int 		filter_jump_value_max;	//过滤点最大值 
 };
 
 //共用体

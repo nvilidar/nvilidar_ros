@@ -172,7 +172,11 @@ namespace nvilidar
 		cfg.tailing_level = 6;			//拖尾等级  
 		cfg.angle_offset = 0.0;				//角度偏移 
 		cfg.single_channel = false;			//单通道 
-		cfg.ignore_array_string = "";				//过滤部分角度信息 
+		cfg.ignore_array_string = "";				//忽略部分角度信息 
+		//过滤点信息 
+		cfg.filter_jump_enable = true;		//使能跳动点过滤 
+		cfg.filter_jump_value_min = 3;		//跳动点最小过滤值 
+		cfg.filter_jump_value_max = 25;		//跳动点最大过滤值 
 
 		LidarParaSync(cfg);
 	}

@@ -3,6 +3,7 @@
 #include "nvilidar_def.h"
 #include "nvilidar_protocol.h"
 #include "serial/nvilidar_serial.h"
+#include "nvilidar_filter.h"
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -114,6 +115,9 @@ namespace nvilidar
 			//----------------------串口类---------------------------
 
 			nvilidar_serial::Nvilidar_Serial serialport;
+
+			//-----------------------过滤信息------------------------
+			nvilidar::LidarFilter lidar_filter;
 
 			//-----------------------变量----------------------------
 			Nvilidar_UserConfigTypeDef     lidar_cfg;				//雷达型号
