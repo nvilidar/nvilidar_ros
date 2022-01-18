@@ -84,12 +84,14 @@ int main(int argc, char * argv[])
         ROS_ERROR("Error initializing NVILIDAR Comms and Status!!!");
     }
     ros::Rate rate(50);
+    uint32_t retry_times = 0;
+    LidarScan scan;
 
     while (ret && ros::ok()) 
     {
-        LidarScan scan;
         if(laser.LidarSamplingProcess(scan))
         {
+            retry_times = 0; 
             sensor_msgs::LaserScan scan_msg;
             ros::Time start_scan_time;
             start_scan_time.sec = scan.stamp/1000000000ul;
@@ -115,13 +117,26 @@ int main(int argc, char * argv[])
                     scan_msg.intensities[index] = scan.points[i].intensity;
                 }
             }
-        scan_pub.publish(scan_msg);
+        	scan_pub.publish(scan_msg);
         }  
-        rate.sleep();
+        else        //未收到数据  超过15次  则报错 
+        {
+            retry_times++;
+
+            //重试 超过N次不返回  则报错 
+            if(retry_times > 10)
+            {
+                retry_times = 0;
+
+                ROS_ERROR("Get scan Data timeout!!!");
+                break;
+            }
+        }  
         ros::spinOnce();
+        rate.sleep();    
     }
     laser.LidarTurnOff();
-    ROS_INFO("[NVILIDAR INFO] Now NVILIDAR is stopping .......");
+    printf("[NVILIDAR INFO] Now NVILIDAR is stopping .......\n");
     laser.LidarCloseHandle();
     return 0;
 }

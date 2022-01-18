@@ -27,32 +27,29 @@ namespace nvilidar
 	{
 		size_t i = 0;
 
-		//启动过滤算法 
-		if(lidar_cfg.filter_jump_enable)
+
+		//异常值  退出解析 
+		if(in.size() <= 4)
 		{
-			//异常值  退出解析 
-			if(in.size() <= 4)
+			return;
+		}
+
+		//正常值  进行过滤管理信息 
+		while(i < (in.size()-3))
+		{
+			if(((abs(in.at(i+1).lidar_distance - in.at(i).lidar_distance) >= lidar_cfg.filter_jump_value_min)
+							&&(abs(in.at(i+1).lidar_distance - in.at(i).lidar_distance) <= lidar_cfg.filter_jump_value_max))
+				&& ((abs(in.at(i+1).lidar_distance - in.at(i+2).lidar_distance) >= lidar_cfg.filter_jump_value_min)
+							&& (abs(in.at(i+1).lidar_distance - in.at(i+2).lidar_distance) <= lidar_cfg.filter_jump_value_max)))
 			{
-				return;
+				in.at(i+1).lidar_distance = (in.at(i).lidar_distance + in.at(i+2).lidar_distance) / 2;
+				i += 2;
+
+				//printf("filter:%d\n",in.at(i+1).lidar_distance);
 			}
-
-			//正常值  进行过滤管理信息 
-			while(i < (in.size()-3))
+			else
 			{
-				if(((abs(in.at(i+1).lidar_distance - in.at(i).lidar_distance) >= lidar_cfg.filter_jump_value_min)
-								&&(abs(in.at(i+1).lidar_distance - in.at(i).lidar_distance) <= lidar_cfg.filter_jump_value_max))
-					&& ((abs(in.at(i+1).lidar_distance - in.at(i+2).lidar_distance) >= lidar_cfg.filter_jump_value_min)
-								&& (abs(in.at(i+1).lidar_distance - in.at(i+2).lidar_distance) <= lidar_cfg.filter_jump_value_max)))
-				{
-					in.at(i+1).lidar_distance = (in.at(i).lidar_distance + in.at(i+2).lidar_distance) / 2;
-					i += 2;
-
-					//printf("filter:%d\n",in.at(i+1).lidar_distance);
-				}
-				else
-				{
-					i++;
-				}
+				i++;
 			}
 		}
 	}

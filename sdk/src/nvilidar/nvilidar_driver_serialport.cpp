@@ -1602,8 +1602,11 @@ namespace nvilidar
 
 			if(0 == state)
 			{
-				//一圈数据  输出后 是否做其它数据 
-				lidar_filter.LidarJumpFilter(circleDataInfo.lidarCircleNodePoints);
+				if(lidar_cfg.filter_jump_enable)
+				{
+					//一圈数据  输出后 是否做其它数据 
+					lidar_filter.LidarJumpFilter(circleDataInfo.lidarCircleNodePoints);
+				}
 				//点集格式转换 
 				LidarSamplingData(circleDataInfo, scan);
 
