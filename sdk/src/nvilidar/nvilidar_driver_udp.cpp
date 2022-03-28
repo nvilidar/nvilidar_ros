@@ -611,8 +611,6 @@ namespace nvilidar
 					checksum_speed_temp += (byte * 256);     //校验计算
 					pack_info.packageCheckSumCalc ^= checksum_speed_temp; //校验计算
 
-					static uint32_t pack_sum = 0;
-					static uint32_t temp_sum = 0;
 
 					if (pack_info.packageHas0CFirst)  //可能有0度
 					{
@@ -621,8 +619,6 @@ namespace nvilidar
 
 						if (byte & 0x80)
 						{
-							//printf("pack_sum:%d\n", pack_sum);
-							pack_sum = 0;
 
 							package_after_0c_index = 0;     //0位包  则将0度后的个数  清0
 
@@ -637,7 +633,6 @@ namespace nvilidar
 					}
 					else if (pack_info.packageHasTempFirst)    //是温度计算信息
 					{
-						pack_sum++;
 
 						pack_info.packageHasTempFirst = false;
 
@@ -650,7 +645,6 @@ namespace nvilidar
 					}
 					else
 					{
-						pack_sum++;
 
 						pack_info.packageHas0CAngle = false;
 						pack_info.packageHasTemp = false;
@@ -1627,12 +1621,6 @@ namespace nvilidar
 				angle = 2 * M_PI - angle;
 			}
 
-			//-pi ~ pi
-			angle = fmod(fmod(angle, 2.0 * M_PI) + 2.0 * M_PI, 2.0 * M_PI);
-			if (angle > M_PI)
-			{
-				angle -= 2.0 * M_PI;
-			}
 
 			//忽略点（事先配置好哪个角度的范围）
 			if (lidar_cfg.ignore_array.size() != 0)
@@ -1650,6 +1638,13 @@ namespace nvilidar
 						break;
 					}
 				}
+			}
+			
+			//-pi ~ pi
+			angle = fmod(fmod(angle, 2.0 * M_PI) + 2.0 * M_PI, 2.0 * M_PI);
+			if (angle > M_PI)
+			{
+				angle -= 2.0 * M_PI;
 			}
 
 			//距离是否在有效范围内 

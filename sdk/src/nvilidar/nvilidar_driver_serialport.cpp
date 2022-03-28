@@ -1691,13 +1691,6 @@ namespace nvilidar
 				angle = 2 * M_PI - angle;
 			}
 
-			//-pi ~ pi
-			angle = fmod(fmod(angle, 2.0 * M_PI) + 2.0 * M_PI, 2.0 * M_PI);
-			if (angle > M_PI)
-			{
-				angle -= 2.0 * M_PI;
-			}
-
 			//忽略点（事先配置好哪个角度的范围）
 			if (lidar_cfg.ignore_array.size() != 0)
 			{
@@ -1714,6 +1707,13 @@ namespace nvilidar
 						break;
 					}
 				}
+			}
+
+			//-pi ~ pi
+			angle = fmod(fmod(angle, 2.0 * M_PI) + 2.0 * M_PI, 2.0 * M_PI);
+			if (angle > M_PI)
+			{
+				angle -= 2.0 * M_PI;
 			}
 
 			//距离是否在有效范围内 

@@ -109,7 +109,7 @@ typedef struct
 	bool     packageErrFlag;       //包错误标记信息
 	uint16_t packageCheckSumGet;   //校验值获取
 	uint16_t packageCheckSumCalc;  //校验值计算
-	uint8_t  packageFreq;          //雷达转速信息
+	uint16_t  packageFreq;          //雷达转速信息
 	int16_t  packageTemp;          //雷达温度信息
 	uint32_t packagePointTime;     //2点时间间隔
 	uint16_t packageFirstAngle;    //起始采样角

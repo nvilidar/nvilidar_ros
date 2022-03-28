@@ -61,8 +61,8 @@ struct Nvilidar_Node_Info
     float      lidar_angle;               //测距点角度
     uint16_t   lidar_distance;            //当前测距点距离
     uint64_t   lidar_stamp;               //时间戳
-    uint16_t   lidar_speed;               //扫描频率
-    int16_t    lidar_temper;              //雷达 温度值
+    float      lidar_speed;               //扫描频率
+    float      lidar_temper;              //雷达 温度值
     uint32_t   lidar_point_time;          //2点时间间隔
     uint8_t    lidar_index;               //当前索引  
     uint8_t    lidar_error_package;       //错包信息 
