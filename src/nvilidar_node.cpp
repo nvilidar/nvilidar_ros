@@ -7,7 +7,7 @@
 #include "nvilidar_def.h"
 
 using namespace nvilidar;
-#define ROSVerision "1.0.5"
+#define ROSVerision "1.0.6"
 
 
 int main(int argc, char * argv[]) 

@@ -43,7 +43,16 @@ namespace nvilidar_socket
         // 保存ip 端口等信息
         m_SocketPara.sin_family =  AF_INET;
         m_SocketPara.sin_port =  htons(port);
-        m_SocketPara.sin_addr.S_un.S_addr = inet_addr(addr);
+		m_SocketPara.sin_addr.S_un.S_addr = htonl(INADDR_ANY);//inet_addr(addr);
+
+		if (!bind(m_SocketHandle, (sockaddr*)&m_SocketPara, sizeof(m_SocketPara)) != SOCKET_ERROR)
+		{
+		}
+
+		//发送 
+		m_SocketSndPara.sin_family = AF_INET;
+		m_SocketSndPara.sin_port = htons(port);
+		m_SocketSndPara.sin_addr.S_un.S_addr = inet_addr(addr);
 
 		m_SocketConnect = true;
     }
@@ -82,7 +91,7 @@ namespace nvilidar_socket
 			return -1;
 		}
 
-        int ret = sendto(m_SocketHandle,(char *)data,len,0, (sockaddr*)&m_SocketPara,sizeof(m_SocketPara));
+        int ret = sendto(m_SocketHandle,(char *)data,len,0, (sockaddr*)&m_SocketSndPara,sizeof(m_SocketSndPara));
 		if (0 == ret)
 		{
 			ret = -1;

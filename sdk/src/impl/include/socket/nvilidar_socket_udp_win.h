@@ -34,6 +34,7 @@ namespace nvilidar_socket
     private:
         WSADATA              m_hWSAData;            // Windows
         sockaddr_in          m_SocketPara;          //参数信息
+		sockaddr_in          m_SocketSndPara;          //参数信息
         SOCKET               m_SocketHandle;        //handle 
         bool                 m_SocketConnect;       //socket是否连接 
     };

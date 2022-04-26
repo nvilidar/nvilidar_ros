@@ -9,7 +9,7 @@
 //======================================基本参数类型定义============================================ 
 
 //SDK版本号 
-#define NVILIDAR_SDKVerision     "1.0.5"
+#define NVILIDAR_SDKVerision     "1.0.6"
 
 //PI def
 #ifndef M_PI

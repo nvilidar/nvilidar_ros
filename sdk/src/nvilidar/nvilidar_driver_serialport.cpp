@@ -354,6 +354,11 @@ namespace nvilidar
 		static uint16_t  recvPos = 0;											//当前接到的位置信息
 		static uint8_t   crc = 0;												//CRC校验值 
 		static Nvilidar_Protocol_NormalResponseData		normalResponseData;				//常规数据应答  
+		
+		if (len > 1024)
+		{
+			return;
+		}
 
 		for (int j = 0; j < len; j++)
 		{
@@ -1775,7 +1780,7 @@ namespace nvilidar
 				{
 					//读串口接收数据长度 
 					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
-					if(recv_len > 0)
+					if((recv_len > 0) && (recv_len <= 8192))
 					{
 						pObj->NormalDataUnpack(recv_data, recv_len);
 					}
@@ -1786,7 +1791,7 @@ namespace nvilidar
 				{
 					//读串口接收数据长度 
 					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
-					if (recv_len > 0)
+					if ((recv_len > 0) && (recv_len <= 8192))
 					{
 						pObj->PointDataUnpack(recv_data, recv_len);
 					}
@@ -1812,7 +1817,7 @@ namespace nvilidar
 				{
 					//读串口接收数据长度 
 					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
-					if(recv_len > 0)
+					if((recv_len > 0) && (recv_len <= 8192))
 					{
 						pObj->NormalDataUnpack(recv_data, recv_len);
 					}
@@ -1823,7 +1828,7 @@ namespace nvilidar
 				{
 					//读串口接收数据长度 
 					recv_len = pObj->serialport.serialReadData(recv_data, 8192);
-					if(recv_len > 0)
+					if((recv_len > 0) && (recv_len <= 8192))
 					{
 						pObj->PointDataUnpack(recv_data, recv_len);
 					}

@@ -27,6 +27,7 @@ namespace nvilidar_socket
         bool                 m_SocketConnect;       //socket是否连接 
         int                  m_SocketHandle;        //handle 
         struct sockaddr_in   m_SocketPara;          //para 
+        struct sockaddr_in   m_SocketSndPara;       //send 
     };
 };
 
