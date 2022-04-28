@@ -7,7 +7,7 @@
 #include "nvilidar_def.h"
 
 using namespace nvilidar;
-#define ROSVerision "1.0.6"
+#define ROSVerision "1.0.7"
 
 
 int main(int argc, char * argv[]) 
@@ -57,10 +57,10 @@ int main(int argc, char * argv[])
     nh_private.param<int>("filter_jump_value_max",  cfg.filter_jump_value_max, 50);
 
     //更新数据 用网络或者串口 
-    #if 0
-        nvilidar::LidarProcess laser(USE_SOCKET,cfg.ip_addr, cfg.lidar_udp_port);
-    #else 
+    #if 1
         nvilidar::LidarProcess laser(USE_SERIALPORT,cfg.serialport_name,cfg.serialport_baud);
+    #else 
+        nvilidar::LidarProcess laser(USE_SOCKET,cfg.ip_addr, cfg.lidar_udp_port);
     #endif 
 
     //根据配置 重新加载参数 
@@ -84,53 +84,50 @@ int main(int argc, char * argv[])
         ROS_ERROR("Error initializing NVILIDAR Comms and Status!!!");
     }
     ros::Rate rate(50);
-    uint32_t retry_times = 0;
     LidarScan scan;
 
     while (ret && ros::ok()) 
     {
         if(laser.LidarSamplingProcess(scan))
         {
-            retry_times = 0; 
-            sensor_msgs::LaserScan scan_msg;
-            ros::Time start_scan_time;
-            start_scan_time.sec = scan.stamp/1000000000ul;
-            start_scan_time.nsec = scan.stamp%1000000000ul;
-            scan_msg.header.stamp = start_scan_time;
-            scan_msg.header.frame_id = cfg.frame_id;
-            scan_msg.angle_min =(scan.config.min_angle);
-            scan_msg.angle_max = (scan.config.max_angle);
-            scan_msg.angle_increment = (scan.config.angle_increment);
-            scan_msg.scan_time = scan.config.scan_time;
-            scan_msg.time_increment = scan.config.time_increment;
-            scan_msg.range_min = (scan.config.min_range);
-            scan_msg.range_max = (scan.config.max_range);
-            int size = (scan.config.max_angle - scan.config.min_angle)/ scan.config.angle_increment + 1;
-            
-            scan_msg.ranges.resize(size);
-            scan_msg.intensities.resize(size);
-            for(int i=0; i < scan.points.size(); i++) {
-                int index = std::ceil((scan.points[i].angle - scan.config.min_angle)/scan.config.angle_increment);
-                if(index >=0 && index < size) 
-                {
-                    scan_msg.ranges[index] = scan.points[i].range;
-                    scan_msg.intensities[index] = scan.points[i].intensity;
+            if(scan.points.size() > 0)
+            {
+                sensor_msgs::LaserScan scan_msg;
+                ros::Time start_scan_time;
+                start_scan_time.sec = scan.stamp/1000000000ul;
+                start_scan_time.nsec = scan.stamp%1000000000ul;
+                scan_msg.header.stamp = start_scan_time;
+                scan_msg.header.frame_id = cfg.frame_id;
+                scan_msg.angle_min =(scan.config.min_angle);
+                scan_msg.angle_max = (scan.config.max_angle);
+                scan_msg.angle_increment = (scan.config.angle_increment);
+                scan_msg.scan_time = scan.config.scan_time;
+                scan_msg.time_increment = scan.config.time_increment;
+                scan_msg.range_min = (scan.config.min_range);
+                scan_msg.range_max = (scan.config.max_range);
+                int size = (scan.config.max_angle - scan.config.min_angle)/ scan.config.angle_increment + 1;
+                
+                scan_msg.ranges.resize(size);
+                scan_msg.intensities.resize(size);
+                for(int i=0; i < scan.points.size(); i++) {
+                    int index = std::ceil((scan.points[i].angle - scan.config.min_angle)/scan.config.angle_increment);
+                    if(index >=0 && index < size) 
+                    {
+                        scan_msg.ranges[index] = scan.points[i].range;
+                        scan_msg.intensities[index] = scan.points[i].intensity;
+                    }
                 }
+                scan_pub.publish(scan_msg);
             }
-        	scan_pub.publish(scan_msg);
+            else 
+            {
+                ROS_WARN("Lidar Data Invalid!");
+            }
         }  
         else        //未收到数据  超过15次  则报错 
         {
-            retry_times++;
-
-            //重试 超过N次不返回  则报错 
-            if(retry_times > 10)
-            {
-                retry_times = 0;
-
-                ROS_ERROR("Get scan Data timeout!!!");
-                break;
-            }
+            ROS_ERROR("Failed to get Lidar Data!");
+            break;
         }  
         ros::spinOnce();
         rate.sleep();    

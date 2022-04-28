@@ -122,6 +122,7 @@ namespace nvilidar_socket
     {
         if(istcpOpen())
         {
+            m_SocketConnect = false;
             close(m_SocketHandle);
         }
     }

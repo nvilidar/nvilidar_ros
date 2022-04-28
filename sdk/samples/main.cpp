@@ -22,64 +22,60 @@ int main()
 	printf("\n");
 	fflush(stdout);
 
-	//初始化信号 用于命令行退出  
+	//init signal,for ctrl+c
 	nvilidar::sigInit();
 
-	//应答超时 
-	static uint32_t  no_response_times = 0;
-
-	//初始化参数  网络和串口参数不相同 
+	//init para,the network para is different with serialport  
 #if 1
 	nvilidar::LidarProcess lidar(USE_SERIALPORT,"/dev/nvilidar",921600);
 #else 
 	nvilidar::LidarProcess lidar(USE_SOCKET, "192.168.1.200", 8100);
 #endif 
 
-	//初始化雷达  包括读参 配参 
+	//init lidar,include sync lidar para 
 	if (false == lidar.LidarInitialialize())		
 	{
 		return 0;
 	}
 
-	//启动雷达  读写参数  
+	//open lidar to output point 
 	bool ret = lidar.LidarTurnOn();
 
-	//雷达点云图数据解析及处理
+	//point data analysis 
 	while (ret && (nvilidar::isOK()))
 	{
 		LidarScan scan;
 
 		if (lidar.LidarSamplingProcess(scan))
 		{
-			no_response_times = 0;
-
-			for (size_t i = 0; i < scan.points.size(); i++)
+			if(scan.points.size() > 0)
 			{
-				//float angle = scan.points.at(i).angle;
-				//float dis = scan.points.at(i).range;
-				//printf("a:%f,d:%f\n", angle, dis);
+				for (size_t i = 0; i < scan.points.size(); i++)
+				{
+					//float angle = scan.points.at(i).angle;
+					//float dis = scan.points.at(i).range;
+					//printf("a:%f,d:%f\n", angle, dis);
+				}
+				nvilidar::console.message("Scan received[%llu]: %u ranges is [%f]Hz",
+					scan.stamp, (unsigned int)scan.points.size(),
+					1.0 / scan.config.scan_time);
 			}
-			nvilidar::console.message("Scan received[%llu]: %u ranges is [%f]Hz",
-				scan.stamp, (unsigned int)scan.points.size(),
-				1.0 / scan.config.scan_time);
+			else 
+			{
+				nvilidar::console.warning("Lidar Data Invalid!");
+			}
 		}
 		else
 		{
-			no_response_times++;
-			if (no_response_times >= 5)
-			{
-				no_response_times = 0;
-				nvilidar::console.warning("Failed to get Lidar Data");
-
-				break;
-			}
+			nvilidar::console.error("Failed to get Lidar Data!");
+			break;
 		}
 
-		delayMS(5);		//此处必须要加sleep 否则会占用超高cpu 
+		delayMS(5);		//add sleep,otherwise high cpu 
 	}
-	lidar.LidarTurnOff();      //停止扫描 
-	nvilidar::console.message("lidar is stopping......");
-	lidar.LidarCloseHandle();   //关闭连接 
+	lidar.LidarTurnOff();       //stop scan 
+	nvilidar::console.message("Lidar is Stopping......");
+	lidar.LidarCloseHandle();   //close connect 
 
 	delayMS(100);
 

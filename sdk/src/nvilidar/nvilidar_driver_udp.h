@@ -97,7 +97,7 @@ namespace nvilidar
 			//线程相关 
 			bool createThread();		//创建线程 
 			void closeThread();			//关闭线程 
-			bool waitNormalResponse(uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);	//等待雷达应答 
+			bool waitNormalResponse(uint32_t timeout = NVILIDAR_POINT_TIMEOUT);	//等待雷达应答 
 			void setNormalResponseUnlock();	//解锁 
 			void setCircleResponseUnlock();	//解锁 
 			void LidarSamplingData(CircleDataInfoTypeDef info, LidarScan &outscan);		//拆包 

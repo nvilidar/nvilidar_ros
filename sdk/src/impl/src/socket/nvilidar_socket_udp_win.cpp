@@ -26,18 +26,26 @@ namespace nvilidar_socket
     }
 
     // 初始化 
-    void Nvilidar_Socket_UDP::udpInit(const char *addr, unsigned short port)
+    bool Nvilidar_Socket_UDP::udpInit(const char *addr, unsigned short port)
     {
+		m_SocketConnect = false;
+
         // socket版本号 
         memset(&m_hWSAData, 0, sizeof(m_hWSAData));
-        WSAStartup(MAKEWORD(2, 2), &m_hWSAData);
+		int err = WSAStartup(MAKEWORD(2, 2), &m_hWSAData);
+		if (err != 0)
+		{
+			//printf("socket version error!\n");
+			return false;
+		}
 
         // 创建设备类型 本雷达需要 IPV4,STREAM,TCP方式  
         m_SocketHandle = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if(m_SocketHandle == INVALID_SOCKET)
 		{
 			m_SocketConnect = false;
-			printf("invalid socket!");
+			//printf("invalid socket!\n");
+			return false;
 		}
 
         // 保存ip 端口等信息
@@ -45,8 +53,10 @@ namespace nvilidar_socket
         m_SocketPara.sin_port =  htons(port);
 		m_SocketPara.sin_addr.S_un.S_addr = htonl(INADDR_ANY);//inet_addr(addr);
 
-		if (!bind(m_SocketHandle, (sockaddr*)&m_SocketPara, sizeof(m_SocketPara)) != SOCKET_ERROR)
+		if(SOCKET_ERROR == bind(m_SocketHandle, (sockaddr*)&m_SocketPara, sizeof(m_SocketPara)))
 		{
+			//printf("socket bind fail!\n");
+			return false;
 		}
 
 		//发送 
@@ -54,13 +64,33 @@ namespace nvilidar_socket
 		m_SocketSndPara.sin_port = htons(port);
 		m_SocketSndPara.sin_addr.S_un.S_addr = inet_addr(addr);
 
+		//set socket opt 
+		int opt_state = 1;
+		if (SOCKET_ERROR == setsockopt(m_SocketHandle, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt_state, sizeof(opt_state)))
+		{
+			return false;
+		}
+
 		m_SocketConnect = true;
+
+		return true;
     }
 
     // 判断有没有连接  
     bool Nvilidar_Socket_UDP::isudpOpen()
     {
         return m_SocketConnect;
+    }
+
+    //关闭socket  
+    void Nvilidar_Socket_UDP::udpClose()
+    {
+        if(m_SocketConnect)
+        {
+            m_SocketConnect = false;     
+            closesocket(m_SocketHandle);
+			WSACleanup();
+        }
     }
 
      // 读可读字节的长度   未用此项 

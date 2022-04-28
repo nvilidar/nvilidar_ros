@@ -122,9 +122,12 @@ namespace nvilidar_socket
     // 关闭连接  
     void Nvilidar_Socket_TCP::tcpClose()
     {
-        m_SocketConnect = false;
-		WSACleanup();
-        closesocket(m_SocketHandle);
+        if(m_SocketConnect)
+        {
+	        m_SocketConnect = false;	
+	        closesocket(m_SocketHandle);
+			WSACleanup();
+        }
     }
 
     // 判断有没有连接  

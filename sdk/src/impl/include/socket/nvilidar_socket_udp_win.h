@@ -26,11 +26,13 @@ namespace nvilidar_socket
     public:
 		Nvilidar_Socket_UDP();
         ~Nvilidar_Socket_UDP();
-        void udpInit(const char *addr, unsigned short port);
+        bool udpInit(const char *addr, unsigned short port);
+        void udpClose();         //关掉udp通信  
         bool isudpOpen();        //是否打开 
         int  udpReadAvaliable(); //读可读字节的长度 
         int  udpReadData(const uint8_t *data,int len);
         int  udpWriteData(const uint8_t *data,int len);        //写数据  
+
     private:
         WSADATA              m_hWSAData;            // Windows
         sockaddr_in          m_SocketPara;          //参数信息

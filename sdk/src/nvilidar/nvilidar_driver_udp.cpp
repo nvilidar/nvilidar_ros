@@ -41,6 +41,7 @@ namespace nvilidar
 	bool LidarDriverUDP::LidarInitialialize()
 	{
 		Nvilidar_StoreConfigTypeDef store_para_read;		//读出的参数  
+		bool save_flag = false;								//保存标记 
 
 		//判断串口参数是否合法  
 		if ((lidar_cfg.ip_addr.length() == 0) || (lidar_cfg.lidar_udp_port == 0))
@@ -48,7 +49,7 @@ namespace nvilidar
 			return false;		//网络参数信息不合法 
 		}
 
-		//开始连接串口 
+		//start connect udp server  
 		if (!LidarConnect(lidar_cfg.ip_addr, lidar_cfg.lidar_udp_port))
 		{
 			nvilidar::console.error("Error initializing NVILIDAR scanner.");
@@ -59,6 +60,8 @@ namespace nvilidar
 		StopScan();
 		//sleep 
 		delayMS(300);
+		//创建线程 接收数据 
+		createThread();		
 		
 		//获取雷达信息 
 		if (false == GetDeviceInfo(lidar_cfg.deviceInfo))
@@ -120,7 +123,15 @@ namespace nvilidar
 		{
 			if (isSetOK)
 			{
-				nvilidar::console.show("NVILIDAR set para OK!");
+				SaveCfg(save_flag);
+				if(save_flag)
+				{
+					nvilidar::console.show("NVILIDAR set para OK!");
+				}
+				else 
+				{
+					nvilidar::console.show("NVILIDAR set para Fail!");
+				}
 			}
 			else
 			{
@@ -157,8 +168,6 @@ namespace nvilidar
 
 		//包数为0了 
 		m_run_circles = 0;
-
-
 
 		//启动成功
 		nvilidar::console.message("[NVILIDAR INFO] Now NVILIDAR is scanning ......");
@@ -235,9 +244,6 @@ namespace nvilidar
 
 		lidar_state.m_CommOpen = true;
 
-		delayMS(100);
-		createThread();		//创建线程 接收数据 
-
 		return true;
 	}
 
@@ -245,6 +251,7 @@ namespace nvilidar
 	void LidarDriverUDP::LidarDisconnect()
 	{
 		lidar_state.m_CommOpen = false;
+		socket_udp.udpClose();
 	}
 
 	//发送串口
@@ -322,25 +329,21 @@ namespace nvilidar
 	//普通数据解包 
 	void LidarDriverUDP::NormalDataUnpack(uint8_t *buf, uint16_t len)
 	{
-		static uint16_t  recvPos = 0;											//当前接到的位置信息
 		static uint8_t   crc = 0;												//CRC校验值 
-		static Nvilidar_Protocol_NormalResponseData		normalResponseData;				//常规数据应答  
+		static uint16_t  normal_recvPos = 0;									//当前接到的位置信息
+		static Nvilidar_Protocol_NormalResponseData		normalResponseData;		//常规数据应答
 
-		if (len > 1024)
-		{
-			return;
-		}
 		for (int j = 0; j < len; j++)
 		{
 			uint8_t byte = buf[j];
 
-			switch (recvPos)
+			switch (normal_recvPos)
 			{
 				case 0:		//第一个字节  
 				{
 					if (byte == NVILIDAR_START_BYTE_LONG_CMD)
 					{
-						recvPos++;
+						normal_recvPos++;
 						break;
 					}
 					else
@@ -350,49 +353,86 @@ namespace nvilidar
 				}
 				case 1:		//第2个字节  
 				{
-					normalResponseData.cmd = byte;
-					recvPos++;
+					if (
+							(byte == NVILIDAR_CMD_GET_DEVICE_INFO) ||
+							(byte == NVILIDAR_CMD_GET_LIDAR_CFG) ||
+							(byte == NVILIDAR_CMD_SET_HAVE_INTENSITIES) ||
+							(byte == NVILIDAR_CMD_SET_NO_INTENSITIES) ||
+							(byte == NVILIDAR_CMD_SET_AIMSPEED) ||
+							(byte == NVILIDAR_CMD_SET_SAMPLING_RATE) ||
+							(byte == NVILIDAR_CMD_SET_TAILING_LEVEL) ||
+							(byte == NVILIDAR_CMD_SAVE_LIDAR_PARA) ||
+							(byte == NVILIDAR_CMD_GET_ANGLE_OFFSET) ||
+							(byte == NVILIDAR_CMD_SET_ANGLE_OFFSET)
+						)
+					{
+						normalResponseData.cmd = byte;
+						normal_recvPos++;
+					}
+					else
+					{
+						normalResponseData.cmd = 0;
+						normal_recvPos=0;
+					}
 					break;
 				}
 				case 2:		//第3个字节  
 				{
 					normalResponseData.length = byte;
-					recvPos++;
+					normal_recvPos++;
 					break;
 				}
 				case 3:		//第4个字节  
 				{
 					normalResponseData.length += byte * 256;
-					recvPos++;
+					normal_recvPos++;
 					break;
 				}
 				default:	//第5个及后续所有字节 
 				{
-					if (recvPos < normalResponseData.length + sizeof(Nvilidar_ProtocolHeader))			//中间有效数据  
+					if (normal_recvPos < normalResponseData.length + sizeof(Nvilidar_ProtocolHeader))			//中间有效数据  
 					{
-						crc ^= byte;
-						normalResponseData.dataInfo[recvPos - sizeof(Nvilidar_ProtocolHeader)] = byte;
+						if (normal_recvPos >= sizeof(Nvilidar_ProtocolHeader))
+						{
+							if (normal_recvPos - sizeof(Nvilidar_ProtocolHeader) < 1024)
+							{
+								crc ^= byte;
+								normalResponseData.dataInfo[normal_recvPos - sizeof(Nvilidar_ProtocolHeader)] = byte;
+							}
+							else
+							{
+								crc = 0;
+								normal_recvPos = 0;
+								memset((char *)&normalResponseData, 0x00, sizeof(normalResponseData));
+							}
+						}
+						else
+						{
+							crc = 0;
+							normal_recvPos = 0;
+							memset((char *)&normalResponseData,0x00,sizeof(normalResponseData));
+						}
 
-						recvPos++;
+						normal_recvPos++;
 					}
-					else if (recvPos == normalResponseData.length + sizeof(Nvilidar_ProtocolHeader))	//校验  
+					else if (normal_recvPos == normalResponseData.length + sizeof(Nvilidar_ProtocolHeader))	//校验  
 					{
 						if (byte != crc)
 						{
-							recvPos = 0;
+							normal_recvPos = 0;
 							break;
 						}
 
-						recvPos++;
+						normal_recvPos++;
 					}
-					else if (recvPos == normalResponseData.length + sizeof(Nvilidar_ProtocolHeader) + 1)
+					else if (normal_recvPos == normalResponseData.length + sizeof(Nvilidar_ProtocolHeader) + 1)
 					{
 						if (byte != NVILIDAR_END_CMD)
 						{
 							normalResponseData.length = 0;
 							normalResponseData.cmd = 0;
 							crc = 0;
-							recvPos = 0;
+							normal_recvPos = 0;
 							break;
 						}
 
@@ -403,7 +443,7 @@ namespace nvilidar
 						normalResponseData.length = 0;
 						normalResponseData.cmd = 0;
 						crc = 0;
-						recvPos = 0;
+						normal_recvPos = 0;
 					}
 
 					break;
@@ -505,6 +545,20 @@ namespace nvilidar
 				recv_info.recvFinishFlag = true;		//接收成功 
 
 				//设置event失效 
+				setNormalResponseUnlock();				//解锁 
+
+				break;
+			}
+			case NVILIDAR_CMD_SAVE_LIDAR_PARA:	//写参数存储  
+			{
+				if(data.length != sizeof(recv_info.saveFlag))
+				{
+					break;
+				}
+				memcpy((char *)(&recv_info.saveFlag), data.dataInfo, data.length);
+				recv_info.recvFinishFlag = true;		//接收成功  
+
+				//设置event 失效  
 				setNormalResponseUnlock();				//解锁 
 
 				break;
@@ -1342,10 +1396,8 @@ namespace nvilidar
 		{
 			if (recv_info.recvFinishFlag)
 			{
-				if (recv_info.saveFlag)
-				{
-					return true;
-				}
+				flag = (bool)(recv_info.saveFlag);
+				return true;
 			}
 		}
 

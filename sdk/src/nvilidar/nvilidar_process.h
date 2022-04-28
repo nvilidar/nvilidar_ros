@@ -44,6 +44,7 @@ namespace nvilidar
 			bool LidarTurnOn();					//雷达启动扫描 
 			bool LidarTurnOff();				//雷达停止扫描 
 			void LidarCloseHandle();			//关掉串口及网络  并退出雷达 
+			bool LidarAutoReconnect();			//自动重连 
 
 			//其它接口 有需要可以调用 
 			std::string LidarGetSerialList();	
@@ -55,6 +56,7 @@ namespace nvilidar
 			LidarDriverUDP			lidar_udp;		//UDP
 			LidarDriverNetConfig	lidar_net_cfg;	//NET 
 			LidarDriverSerialport	lidar_serial;	//SERIALPORT
+			bool  auto_reconnect_flag = false;		//auto reconnect 
 
 			void LidarParaSync(Nvilidar_UserConfigTypeDef &cfg);		//同步参数信息  主要用于ros 
 			void LidarDefaultUserConfig(Nvilidar_UserConfigTypeDef &cfg);		//获取默认参数  可以在此修改

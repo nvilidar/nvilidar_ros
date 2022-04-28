@@ -90,15 +90,75 @@ namespace nvilidar
 	//雷达轮询机制  
 	bool LidarProcess::LidarSamplingProcess(LidarScan &scan, uint32_t timeout)
 	{
+		bool ret_state = false;							//return states 
+		bool get_point_state = false;					//get point states 
+		static uint32_t  no_response_times = 0;			//cannot receive data times 
+		static uint32_t  auto_reconnect_times = 0;		//auto reconnect times 
+
+		//get point from serialport or socket 
 		if (USE_SERIALPORT == LidarCommType)
-		{
-			return lidar_serial.LidarSamplingProcess(scan,timeout);
+		{	
+			get_point_state = lidar_serial.LidarSamplingProcess(scan, timeout);
 		}
 		else if (USE_SOCKET == LidarCommType)
-		{
-			return lidar_udp.LidarSamplingProcess(scan, timeout);
+		{	
+			get_point_state = lidar_udp.LidarSamplingProcess(scan, timeout);
 		}
-		return false;
+
+		//get no res times 
+		if(auto_reconnect_flag)			//auto reconnect 
+		{
+			ret_state = true;
+
+			if(get_point_state)
+			{
+				no_response_times = 0;  	
+			}
+			else 
+			{
+				scan.points.clear();		  //clear points
+
+				no_response_times++;
+				if (no_response_times >= 10)  //max 20 seconds 
+				{
+					no_response_times = 0;
+
+					//auto reconnect 
+					bool reconnect = LidarAutoReconnect();
+					if(true == reconnect)
+					{
+						auto_reconnect_times = 0;
+					}
+					else 
+					{
+						auto_reconnect_times ++;
+						nvilidar::console.warning("Auto Reconnect %d......",auto_reconnect_times);
+					}
+				}	
+			}
+		}
+		else 
+		{
+			ret_state = true;	
+
+			if(get_point_state)
+			{
+				no_response_times = 0; 			 
+			}
+			else 
+			{
+				scan.points.clear();		  //clear points 
+
+				no_response_times++;
+				if (no_response_times >= 10)  //max 20 seconds 
+				{
+					ret_state = false;			  //no connect,return false,quit the point state 
+					no_response_times = 0;
+				}		
+			}
+		}
+
+		return ret_state;
 	}
 
 	//退出 
@@ -113,6 +173,23 @@ namespace nvilidar
 			lidar_udp.LidarCloseHandle();
 		}
 	}
+
+	//其它接口  自动重连
+	bool LidarProcess::LidarAutoReconnect()
+	{
+		LidarCloseHandle();			//first,close the connect 
+		delayMS(500);				//delay for thread close 
+		if(false == LidarInitialialize())		//thread init 
+		{
+			return false;
+		}
+		if(false == LidarTurnOn())			//open lidar output point 
+		{
+			return false;
+		}
+		return true;
+	}
+	
 
 	//=========================参数同步=================================
 
@@ -146,6 +223,9 @@ namespace nvilidar
 				nvilidar::console.error("ignore array should be between 0 and 360");
 			}
 		}
+
+		//get auto connect state 
+		auto_reconnect_flag = cfg.auto_reconnect;
 	}
 
 	//初始参数 
@@ -159,7 +239,7 @@ namespace nvilidar
 		cfg.config_tcp_port = 8200;			//8200为默认雷达配置参数用端口 不可更改 
 		cfg.frame_id = "laser_frame";
 		cfg.resolution_fixed = false;		//非固定角分辨 
-		cfg.auto_reconnect = false;			//自动重连 
+		cfg.auto_reconnect = true;			//自动重连 
 		cfg.reversion = false;				//倒转 
 		cfg.inverted = false;				//180度 
 		cfg.angle_max = 180.0;
@@ -172,7 +252,7 @@ namespace nvilidar
 		cfg.tailing_level = 6;			//拖尾等级  
 		cfg.angle_offset = 0.0;				//角度偏移 
 		cfg.single_channel = false;			//单通道 
-		cfg.ignore_array_string = "";				//忽略部分角度信息 
+		cfg.ignore_array_string = "";				//过滤部分角度信息 
 		//过滤点信息 
 		cfg.filter_jump_enable = true;		//使能跳动点过滤 
 		cfg.filter_jump_value_min = 3;		//跳动点最小过滤值 
@@ -271,6 +351,8 @@ namespace nvilidar
 
 		return true;
 	}
+
+
 
 	//=============================ROS预留接口 重新加载参数========================================================
 	void LidarProcess::LidarReloadPara(Nvilidar_UserConfigTypeDef cfg)
