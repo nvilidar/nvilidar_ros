@@ -73,9 +73,12 @@ namespace nvilidar
 			bool SetScanMotorSpeed(uint16_t frequency_add, uint16_t &ret_frequency,    //设置雷达目标转速
 													uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);
 			bool SetSamplingRate(uint32_t rate_add, uint32_t &rate,
-											uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);   //雷达采样率增加
+											uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);   //set lidar sampling 
 			bool SetTrailingLevel(uint8_t tral_set, uint8_t &tral,
 												uint32_t  timeout = NVILIDAR_DEFAULT_TIMEOUT);
+			bool SetApdValue(uint16_t apd_set, uint16_t &apd,
+											uint32_t  timeout = NVILIDAR_DEFAULT_TIMEOUT);	//set lidar apd value 
+
 			//获取配置信息
 			bool GetLidarCfg(Nvilidar_StoreConfigTypeDef &info,
 												uint32_t  timeout = NVILIDAR_DEFAULT_TIMEOUT);
@@ -84,6 +87,7 @@ namespace nvilidar
 												uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);
 			bool SetZeroOffsetAngle(int16_t angle_set, int16_t &angle,
 												uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT); //读取0度偏移
+
 			//保存参数
 			bool SaveCfg(bool &flag,uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);
 

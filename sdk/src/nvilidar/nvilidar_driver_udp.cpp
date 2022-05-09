@@ -119,6 +119,17 @@ namespace nvilidar
 				isSetOK = false;
 			}
 		}
+		if (true == lidar_cfg.apd_change_flag)
+		{
+			if (lidar_cfg.storePara.apdValue != store_para_read.apdValue)
+			{
+				isNeedSetPara = true;
+				if (!SetApdValue(lidar_cfg.storePara.apdValue, store_para_read.apdValue))
+				{
+					isSetOK = false;
+				}
+			}
+		}
 		if (isNeedSetPara)
 		{
 			if (isSetOK)
@@ -146,6 +157,7 @@ namespace nvilidar
 		nvilidar::console.show("lidar frequency :%d.%02d", store_para_read.aimSpeed/100, store_para_read.aimSpeed%100);
 		nvilidar::console.show("lidar sesitive :%s", store_para_read.isHasSensitive ? "yes" : "no");
 		nvilidar::console.show("lidar tailling filter level :%d", store_para_read.tailingLevel);
+		nvilidar::console.show("lidar apd value :%d",store_para_read.apdValue);
 
 		//sleep 
 		//delayMS(5);
@@ -189,7 +201,6 @@ namespace nvilidar
 
 	bool LidarDriverUDP::LidarCloseHandle()
 	{
-		lidar_state.m_CommOpen = false;
 		LidarDisconnect();
 		return true;
 	}
@@ -199,6 +210,11 @@ namespace nvilidar
 	//启动雷达
 	bool LidarDriverUDP::StartScan()
 	{
+		//socket有没有开
+		if (!lidar_state.m_CommOpen)
+		{
+			return false;
+		}
 		//是否正在运行
 		if (lidar_state.m_Scanning)
 		{
@@ -233,18 +249,21 @@ namespace nvilidar
 
 	//启动雷达串口
 	bool LidarDriverUDP::LidarConnect(std::string ip_addr, uint16_t port)
-	{
-		bool ret = false; 
+	{ 
 		socket_udp.udpInit(ip_addr.c_str(),port);
 		
-		if (!socket_udp.isudpOpen())
+		if (socket_udp.isudpOpen())
 		{
+			lidar_state.m_CommOpen = true;
+			return true;
+		}
+		else
+		{
+			lidar_state.m_CommOpen = false;
+
 			return false;
 		}
-
-		lidar_state.m_CommOpen = true;
-
-		return true;
+		return false;
 	}
 
 	//关闭雷达串口接口 
@@ -257,6 +276,11 @@ namespace nvilidar
 	//发送串口
 	bool LidarDriverUDP::SendUDP(const uint8_t *data, size_t size)
 	{
+		if (!lidar_state.m_CommOpen)
+		{
+			return false;
+		}
+
 		if (data == NULL || size == 0)
 		{
 			return false;
@@ -363,7 +387,8 @@ namespace nvilidar
 							(byte == NVILIDAR_CMD_SET_TAILING_LEVEL) ||
 							(byte == NVILIDAR_CMD_SAVE_LIDAR_PARA) ||
 							(byte == NVILIDAR_CMD_GET_ANGLE_OFFSET) ||
-							(byte == NVILIDAR_CMD_SET_ANGLE_OFFSET)
+							(byte == NVILIDAR_CMD_SET_ANGLE_OFFSET) ||
+							(byte == NVILIDAR_CMD_SET_APD_VALUE)
 						)
 					{
 						normalResponseData.cmd = byte;
@@ -542,6 +567,21 @@ namespace nvilidar
 				}
 
 				memcpy((char *)(&recv_info.tailingLevel), data.dataInfo, data.length);
+				recv_info.recvFinishFlag = true;		//接收成功 
+
+				//设置event失效 
+				setNormalResponseUnlock();				//解锁 
+
+				break;
+			}
+			case NVILIDAR_CMD_SET_APD_VALUE:	//设置apd值  
+			{
+				if (data.length != sizeof(recv_info.apdValue))
+				{
+					break;
+				}
+
+				memcpy((char *)(&recv_info.apdValue), data.dataInfo, data.length);
 				recv_info.recvFinishFlag = true;		//接收成功 
 
 				//设置event失效 
@@ -1366,6 +1406,38 @@ namespace nvilidar
 				info.isHasSensitive = recv_info.lidar_get_para.hasSensitive;
 				info.samplingRate = recv_info.lidar_get_para.samplingRate;
 				info.tailingLevel = recv_info.lidar_get_para.tailingLevel;
+				info.apdValue = recv_info.lidar_get_para.apdValue;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//设置灵敏度 
+	bool LidarDriverUDP::SetApdValue(uint16_t apd_set, uint16_t &apd,uint32_t  timeout)
+	{
+		recv_info.recvFinishFlag = false;
+
+		//先停止雷达 如果雷达在运行 
+		if (lidar_state.m_Scanning)
+		{
+			StopScan();
+		}
+
+		//发送命令
+		if (!SendCommand(NVILIDAR_CMD_SET_APD_VALUE, (uint8_t *)(&apd_set), sizeof(apd_set)))
+		{
+			return false;
+		}
+
+		//等待线程同步 超时 
+		if (waitNormalResponse(timeout))
+		{
+			if (recv_info.recvFinishFlag)
+			{
+				apd = recv_info.apdValue;
 
 				return true;
 			}

@@ -18,6 +18,9 @@
     <param name="sampling_rate"           type="int" value="10"/>
     <param name="sensitive"               type="bool" value="false"/>
     <param name="tailing_level"           type="int" value="6"/>
+    <param name="angle_offset"            type="double" value="0.0" />
+    <param name="apd_change_flag"         type="bool" value="false"/>
+    <param name="apd_value"               type="int"  value="500"/>
     <param name="single_channel"          type="bool" value="false"/>
     <param name="ignore_array_string"     type="string" value="" />
   </node>

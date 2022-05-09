@@ -29,6 +29,9 @@
 #define NVILIDAR_CMD_SET_HAVE_INTENSITIES      0x50        //有信号质量
 #define NVILIDAR_CMD_SET_NO_INTENSITIES        0x51        //设置没有信号质量
 
+#define NVILIDAR_CMD_GET_APD_VALUE			   0xDA        //读灵敏度(apd)信息
+#define NVILIDAR_CMD_SET_APD_VALUE			   0x29        //写灵敏度(apd)信息
+
 #define NVILIDAR_CMD_GET_DISTANCE_OFFSET       0xC9        //读距离偏移
 #define NVILIDAR_CMD_SET_DISTANCE_OFFSET       0xC8        //写距离偏移
 

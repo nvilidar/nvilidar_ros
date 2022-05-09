@@ -9,7 +9,7 @@
 //======================================基本参数类型定义============================================ 
 
 //SDK版本号 
-#define NVILIDAR_SDKVerision     "1.0.7"
+#define NVILIDAR_SDKVerision     "1.0.8"
 
 //PI def
 #ifndef M_PI
@@ -46,7 +46,8 @@ struct  Nvilidar_StoreConfigTypeDef
 	uint16_t    aimSpeed;               //转速信息 x100
 	uint32_t    samplingRate;           //采样率x1
 	int16_t     angleOffset;            //角度偏移x64
-	uint8_t     tailingLevel;          //拖尾等级
+	uint8_t     tailingLevel;           //拖尾等级
+	uint16_t    apdValue;				//apd值 
 };
 
 //数据信息 
@@ -78,6 +79,8 @@ struct  Nvilidar_UserConfigTypeDef
 	int			sampling_rate;			//采样率 
 	bool		sensitive;				//是否带信号质量 
 	int			tailing_level;			//拖尾等级 
+	bool		apd_change_flag;		//是否允许修改apd值 
+	int			apd_value;				//预设的apd值 
 	double 		angle_offset;			//角度偏移 
 	bool     	single_channel;        	//单通道通信
 
@@ -137,6 +140,7 @@ typedef struct
 	uint32_t    samplingRate;					//采样率x1
 	int16_t     angleOffset;					//角度偏移x64
 	uint8_t     tailingLevel;					//拖尾等级
+	uint16_t    apdValue;						//apd值信息 
 	uint8_t     saveFlag;						//是否保存成功了 
 }NvilidarRecvInfoTypeDef;
 

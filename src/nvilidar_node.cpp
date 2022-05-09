@@ -7,7 +7,7 @@
 #include "nvilidar_def.h"
 
 using namespace nvilidar;
-#define ROSVerision "1.0.7"
+#define ROSVerision "1.0.8"
 
 
 int main(int argc, char * argv[]) 
@@ -49,6 +49,8 @@ int main(int argc, char * argv[])
     nh_private.param<bool>("sensitive",      cfg.sensitive, false);
     nh_private.param<int>("tailing_level",  cfg.tailing_level, 6);
     nh_private.param<double>("angle_offset",  cfg.angle_offset, 0.0);
+    nh_private.param<bool>("apd_change_flag",  cfg.apd_change_flag, false);
+    nh_private.param<int>("apd_value",  cfg.apd_value, 500);
     nh_private.param<bool>("single_channel",  cfg.single_channel, false);
     nh_private.param<std::string>("ignore_array_string",  cfg.ignore_array_string, "");
     //过滤参数

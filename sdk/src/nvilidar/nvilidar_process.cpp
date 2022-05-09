@@ -201,6 +201,7 @@ namespace nvilidar
 		cfg.storePara.isHasSensitive = cfg.sensitive;							//是否带有信号质量 
 		cfg.storePara.aimSpeed = (uint16_t)(cfg.aim_speed * 100 + 0.5);			//N Hz 实际与雷达的  100倍 U16 
 		cfg.storePara.tailingLevel = cfg.tailing_level;							//拖尾等级 
+		cfg.storePara.apdValue = cfg.apd_value;									//apd value 
 
 		//ingnore array拆分 
 		std::vector<float> elems;
@@ -249,10 +250,12 @@ namespace nvilidar
 		cfg.aim_speed = 10.0;				//10Hz
 		cfg.sampling_rate = 10;				//10k
 		cfg.sensitive = false;				//数据不加信号质量 
-		cfg.tailing_level = 6;			//拖尾等级  
+		cfg.tailing_level = 6;				//拖尾等级  
 		cfg.angle_offset = 0.0;				//角度偏移 
+		cfg.apd_change_flag = false;		//允许修改apd值  默认为false 
+		cfg.apd_value = 500;				//默认修改的apd值 
 		cfg.single_channel = false;			//单通道 
-		cfg.ignore_array_string = "";				//过滤部分角度信息 
+		cfg.ignore_array_string = "";		//过滤部分角度信息 
 		//过滤点信息 
 		cfg.filter_jump_enable = true;		//使能跳动点过滤 
 		cfg.filter_jump_value_min = 3;		//跳动点最小过滤值 

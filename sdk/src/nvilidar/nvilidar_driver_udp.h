@@ -67,6 +67,9 @@ namespace nvilidar
 											uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);   //雷达采样率增加
 			bool SetTrailingLevel(uint8_t tral_set, uint8_t &tral,
 												uint32_t  timeout = NVILIDAR_DEFAULT_TIMEOUT);
+			bool SetApdValue(uint16_t apd_set, uint16_t &apd,
+											uint32_t  timeout = NVILIDAR_DEFAULT_TIMEOUT);	//set lidar apd value 
+
 			//获取配置信息
 			bool GetLidarCfg(Nvilidar_StoreConfigTypeDef &info,
 												uint32_t  timeout = NVILIDAR_DEFAULT_TIMEOUT);
