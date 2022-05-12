@@ -25,7 +25,7 @@ you also can with this:
 ## How to build NVILiDAR ROS Package
 
     1) Clone this project to your catkin's workspace src folder
-    	(1). git clone https://github.com/nvilidar/     nvilidar_ros.git  
+    	(1). git clone https://github.com/nvistar/nvistar-ros.git  
           or
           git clone https://gitee.com/nvilidar/nvilidar_ros.git
     	(2). git chectout master
