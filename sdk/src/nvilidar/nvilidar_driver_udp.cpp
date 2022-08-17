@@ -340,7 +340,7 @@ namespace nvilidar
 		{
 			temp_buf[0] = NVILIDAR_START_BYTE_LONG_CMD;
 			temp_buf[1] = cmd;
-			temp_buf[2] = (uint8_t)(payloadsize & 0xFE);
+			temp_buf[2] = (uint8_t)(payloadsize & 0xFF);
 			temp_buf[3] = (uint8_t)(payloadsize >> 8);
 
 			for(int i = 0; i<payloadsize; i++){
