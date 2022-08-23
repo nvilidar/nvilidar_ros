@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
     nh_private.param<double>("angle_max", cfg.angle_max , 180.0);
     nh_private.param<double>("angle_min", cfg.angle_min , -180.0);
     nh_private.param<double>("range_max", cfg.range_max , 64.0);
-    nh_private.param<double>("range_min", cfg.range_min , 0.0);
+    nh_private.param<double>("range_min", cfg.range_min , 0.001);
     nh_private.param<double>("aim_speed", cfg.aim_speed , 10.0);
     nh_private.param<int>("sampling_rate", cfg.sampling_rate, 10000);
     nh_private.param<bool>("sensitive",      cfg.sensitive, false);
