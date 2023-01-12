@@ -1106,8 +1106,6 @@ namespace nvilidar
 			{
 				setCircleResponseUnlock();		//解锁  告知已接到一包数据信息 
 			}
-
-			delayMS(5);
 		}
 	}
 
@@ -1843,7 +1841,6 @@ namespace nvilidar
 					{
 						pObj->NormalDataUnpack(recv_data, recv_len);
 					}
-					delayMS(3);		//必须要加sleep 不然会超高占用cpu	
 				}
 				//解包处理 ==== 点云解包 
 				else 
@@ -1855,6 +1852,8 @@ namespace nvilidar
 						pObj->PointDataUnpack(recv_data, recv_len);
 					}
 				}
+
+				delayMS(1);		//必须要加sleep 不然会超高占用cpu	
 			}
 
 			return 0;
@@ -1880,7 +1879,6 @@ namespace nvilidar
 					{
 						pObj->NormalDataUnpack(recv_data, recv_len);
 					}
-					delayMS(3);		//必须要加sleep 不然会超高占用cpu	
 				}
 				//解包处理 ==== 点云解包 
 				else 
@@ -1892,6 +1890,8 @@ namespace nvilidar
 						pObj->PointDataUnpack(recv_data, recv_len);
 					}
 				}
+
+				delayMS(1);		//必须要加sleep 不然会超高占用cpu	
 			}
 
 			return 0;
