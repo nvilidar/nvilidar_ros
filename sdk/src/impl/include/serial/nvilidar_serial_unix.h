@@ -53,6 +53,7 @@ namespace nvilidar_serial
         int  serialWriteData(const uint8_t *data,int len);        //write data to serialport 
         void serialFlush();         //flush serialport data  
     private:
+        bool setTermios(int fd,const termios *tio);
         bool serialSetpara(int fd,
                  int baudRate = 512000,
                  int parity = ParityNone,

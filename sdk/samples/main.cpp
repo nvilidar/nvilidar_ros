@@ -25,12 +25,16 @@ int main()
 	//init signal,for ctrl+c
 	nvilidar::sigInit();
 
+	//version 
+	printf("\nthe Current Lidar's SDK Version is: %s\n\n",NVILIDAR_SDKVerision);
+
 	//introduce 
-	printf("Current sdk supports 2 types of lidar,include vp300,vp350 \n");
-	printf("The vp300 is a USB interface lidar, supporting various baud rates, bps is recommended.\n");
+	printf("Note:\n");
+	printf("Current sdk supports 2 types of lidar,include roc300,vp350 \n");
+	printf("The roc300 is a USB interface lidar, supporting various baud rates, 921600bps is recommended.\n");
 	printf("vp350 is a serial interface lidar, supporting only 512000bps.\n\n");
 
-	//vp300 lidar is USB-CDC,can use any baudrate.best 921600bps,
+	//roc300 lidar is USB-CDC,can use any baudrate.best 921600bps,
 	//vp350 must be 512000bps
 	//init para,the network para is different with serialport  
 	#if 1

@@ -9,7 +9,7 @@
 //======================================basic parameter============================================ 
 
 //SDK version 
-#define NVILIDAR_SDKVerision     "1.0.9"
+#define NVILIDAR_SDKVerision     "1.1.1"
 
 //PI def
 #ifndef M_PI
@@ -25,7 +25,7 @@
 typedef enum
 {
 	NVILIDAR_Unknow = 0,		//unknow lidar 
-   	NVILIDAR_VP300,				//lidar VP300
+   	NVILIDAR_ROC300,			//lidar ROC300
 	NVILIDAR_VP350,				//lidar VP350
    	NVILIDAR_Tail,
 }LidarModelListEnumTypeDef;

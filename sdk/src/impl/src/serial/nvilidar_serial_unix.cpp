@@ -208,6 +208,15 @@ namespace nvilidar_serial
         }
     }
 
+    //set termios 
+    bool Nvilidar_Serial::setTermios(int fd,const termios *tio)
+    {
+        if (::tcsetattr(fd, TCSANOW, tio) == -1) {
+            return false;
+        }
+        return true;
+    }
+
     //set standard baudrate 
     bool Nvilidar_Serial::setStandardBaudRate(int fd,int baud_unix){
 
@@ -246,7 +255,7 @@ namespace nvilidar_serial
             return false;
         }
 
-        return false;
+        return setTermios(fd,&tio);
     }
 
     //set  custom baudrate 
@@ -332,6 +341,8 @@ namespace nvilidar_serial
             tio->c_cflag |= CS8;
             break;
         }
+
+        setTermios(fd,tio);         //set termios 
     }
 
     //set parity 
@@ -373,6 +384,8 @@ namespace nvilidar_serial
                 break;
             }
         }
+
+        setTermios(fd,tio);         //set termios 
     }
 
     //set stopbits 
@@ -389,6 +402,7 @@ namespace nvilidar_serial
             break;
         }
 
+        setTermios(fd,tio);         //set termios 
     }
 
     //set flowcontrol 
@@ -411,6 +425,8 @@ namespace nvilidar_serial
                 tio->c_iflag &= ~(IXON | IXOFF | IXANY);
                 break;
         } 
+
+        setTermios(fd,tio);         //set termios 
     }
 
     //set CommonProps 
@@ -421,7 +437,7 @@ namespace nvilidar_serial
         tio->c_cc[VTIME] = 0;
         tio->c_cc[VMIN] = 0;
 
-        tio->c_cflag |= CREAD;
+        //tio->c_cflag |= CREAD;
     }
 
     //baud change to standard baudrate 

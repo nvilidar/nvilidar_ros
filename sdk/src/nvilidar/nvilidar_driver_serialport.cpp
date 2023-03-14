@@ -139,7 +139,7 @@ namespace nvilidar
 			}
 		}
 		if (true == lidar_cfg.apd_change_flag){					//apd value 				
-			if(lidar_cfg.lidar_model_name == NVILIDAR_VP300){
+			if(lidar_cfg.lidar_model_name == NVILIDAR_ROC300){
 				if (lidar_cfg.storePara.apdValue != store_para_read.apdValue)
 				{
 					isNeedSetPara = true;
@@ -178,7 +178,7 @@ namespace nvilidar
 		nvilidar::console.show("lidar sesitive :%s", store_para_read.isHasSensitive ? "yes" : "no");
 		nvilidar::console.show("lidar tailling filter level :%d", store_para_read.tailingLevel);
 		nvilidar::console.show("lidar angle offset :%.2f",(double)store_para_read.angleOffset/64.0);
-		if(lidar_cfg.lidar_model_name == NVILIDAR_VP300){
+		if(lidar_cfg.lidar_model_name == NVILIDAR_ROC300){
 			nvilidar::console.show("lidar apd value :%d\n",store_para_read.apdValue);
 		}
 
@@ -1535,10 +1535,14 @@ namespace nvilidar
 		std::string modelNum_String = info.m_ProductName;
 		std::string::size_type pos;
 
-		//VP300
+		//ROC300
 		pos = modelNum_String.find("VP300");
 		if(pos != std::string::npos){
-			return NVILIDAR_VP300;
+			return NVILIDAR_ROC300;
+		}
+		pos = modelNum_String.find("R300");
+		if(pos != std::string::npos){
+			return NVILIDAR_ROC300;
 		}
 
 		//VP350 

@@ -229,7 +229,7 @@ namespace nvilidar
 	void  LidarProcess::LidarDefaultUserConfig(Nvilidar_UserConfigTypeDef &cfg)
 	{
 		//lidar model 
-		cfg.lidar_model_name = NVILIDAR_VP300;
+		cfg.lidar_model_name = NVILIDAR_ROC300;
 		//para to config 
 		cfg.serialport_baud = 921600;
 		cfg.serialport_name = "/dev/nvilidar";
