@@ -192,12 +192,13 @@ namespace nvilidar
 	//lidar data  sync 
 	void  LidarProcess::LidarParaSync(Nvilidar_UserConfigTypeDef &cfg)
 	{
-		cfg.storePara.samplingRate = (uint32_t)(cfg.sampling_rate * 1000);		// * 1000
-		cfg.storePara.angleOffset = (uint16_t)(cfg.angle_offset * 64 + 0.5);	//角度偏移 	实际与雷达的  64倍 U16 	
-		cfg.storePara.isHasSensitive = cfg.sensitive;							//是否带有信号质量 
-		cfg.storePara.aimSpeed = (uint16_t)(cfg.aim_speed * 100 + 0.5);			//N Hz 实际与雷达的  100倍 U16 
-		cfg.storePara.tailingLevel = cfg.tailing_level;							//拖尾等级 
-		cfg.storePara.apdValue = cfg.apd_value;									//apd value 
+		cfg.storePara.samplingRate = (uint32_t)(cfg.sampling_rate * 1000);			// * 1000
+		cfg.storePara.angleOffset = (uint16_t)(cfg.angle_offset * 64 + 0.5);		//角度偏移 	实际与雷达的  64倍 U16 	
+		cfg.storePara.qualityFilterThreshold = (uint16_t)(cfg.quality_threshold);	//quality threshold 
+		cfg.storePara.isHasSensitive = cfg.sensitive;								//是否带有信号质量 
+		cfg.storePara.aimSpeed = (uint16_t)(cfg.aim_speed * 100 + 0.5);				//N Hz 实际与雷达的  100倍 U16 
+		cfg.storePara.tailingLevel = cfg.tailing_level;								//拖尾等级 
+		cfg.storePara.apdValue = cfg.apd_value;										//apd value 
 
 		//ingnore array apart 
 		std::vector<float> elems;
@@ -258,6 +259,9 @@ namespace nvilidar
 		cfg.filter_jump_enable = true;		//jump point filter 
 		cfg.filter_jump_value_min = 3;		//min filter 
 		cfg.filter_jump_value_max = 25;		//max filter 
+		//filter 
+		cfg.quality_threshold = 800;
+		cfg.quality_threshold_change_flag = false;
 
 		LidarParaSync(cfg);
 	}
@@ -359,7 +363,7 @@ namespace nvilidar
 	void LidarProcess::LidarReloadPara(Nvilidar_UserConfigTypeDef cfg)
 	{
 		LidarParaSync(cfg);
-		
+
 		if (USE_SERIALPORT == LidarCommType)
 		{
 			lidar_serial.LidarLoadConfig(cfg);	//serialport  

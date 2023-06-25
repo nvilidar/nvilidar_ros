@@ -77,6 +77,11 @@ namespace nvilidar
 			bool SetZeroOffsetAngle(int16_t angle_set, int16_t &angle,
 												uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT); 	//get lidar 0 offset 
 
+			bool GetFilterQualityThreshold(uint16_t &ret_filter_quality,uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);	 //get lidar filter quality 
+
+			bool SetFilterQualityThreshold(uint16_t filter_quality_set, uint16_t &ret_filter_quality,
+												uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);	//set lidar filter quality value 
+
 			bool SaveCfg(bool &flag,uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);				//save para
 
 			bool LidarSamplingProcess(LidarScan &scan, uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);  //lidar data output 
@@ -84,49 +89,49 @@ namespace nvilidar
 			Nvilidar_PackageStateTypeDef   lidar_state;											//lidar state 
 
 		private:
-			bool LidarConnect(std::string ip_addr, uint16_t port);  //串口初始化
-			void LidarDisconnect();      //关闭串口
-			bool SendUDP(const uint8_t *data, size_t size);      //发送接口  私有类 
+			bool LidarConnect(std::string ip_addr, uint16_t port);  //serialport init 
+			void LidarDisconnect();      //close udp  
+			bool SendUDP(const uint8_t *data, size_t size);      //send data to udp  
 			bool SendCommand(uint8_t cmd, uint8_t *payload = NULL,uint16_t payloadsize = 0);
-			void NormalDataUnpack(uint8_t *buf, uint16_t len);		//解包（普通数据解包）
+			void NormalDataUnpack(uint8_t *buf, uint16_t len);		//unpack（normal data）
 			void NormalDataAnalysis(Nvilidar_Protocol_NormalResponseData data);	
-			bool PointDataUnpack(uint8_t *byte, uint16_t len);		//解包（点云数据解包）
+			bool PointDataUnpack(uint8_t *byte, uint16_t len);		//unpack（point cloud）
 			void PointDataAnalysis(Nvilidar_PointViewerPackageInfoTypeDef data);	
 			LidarModelListEnumTypeDef GetLidarModelName(Nvilidar_DeviceInfo info);			//get lidar model name  
 			
-			//线程相关 
-			bool createThread();		//创建线程 
-			void closeThread();			//关闭线程 
-			bool waitNormalResponse(uint32_t timeout = NVILIDAR_POINT_TIMEOUT);	//等待雷达应答 
-			void setNormalResponseUnlock();	//解锁 
-			void setCircleResponseUnlock();	//解锁 
-			void LidarSamplingData(CircleDataInfoTypeDef info, LidarScan &outscan);		//拆包 
+			//thread  
+			bool createThread();		//create thread 
+			void closeThread();			//close thread 
+			bool waitNormalResponse(uint32_t timeout = NVILIDAR_POINT_TIMEOUT);	//wait for lidar response nomal data 
+			void setNormalResponseUnlock();	//unlock nomal data  
+			void setCircleResponseUnlock();	//unlock point data 
+			void LidarSamplingData(CircleDataInfoTypeDef info, LidarScan &outscan);		//interface for lidar point data 
 
-			//----------------------网络类---------------------------
+			//----------------------network---------------------------
 
 			nvilidar_socket::Nvilidar_Socket_UDP socket_udp;
 
 			//-----------------------过滤信息------------------------
 			nvilidar::LidarFilter lidar_filter;
 
-			//-----------------------变量----------------------------
-			Nvilidar_UserConfigTypeDef     lidar_cfg;				//雷达型号
-			CircleDataInfoTypeDef		   circleDataInfo;			//一圈的点云数据 
-			NvilidarRecvInfoTypeDef		   recv_info;				//接收信息 
+			//----------------------value ----------------------------
+			Nvilidar_UserConfigTypeDef     lidar_cfg;				//lidar config data 
+			CircleDataInfoTypeDef		   circleDataInfo;			//lida circle data  
+			NvilidarRecvInfoTypeDef		   recv_info;				//lidar receive data 
 
-			uint32_t    m_0cIndex = 0;                  //0度所用的index
-			int32_t     m_last0cIndex = 0;              //0度所用的index
-			uint32_t    m_differ0cIndex = 0;            //0度所用的index
+			uint32_t    m_0cIndex = 0;                  //0 index
+			int32_t     m_last0cIndex = 0;              //0 index
+			uint32_t    m_differ0cIndex = 0;            //0 index
 			bool        m_first_circle_finish = false;  //first circle finish,case calc fault
-			uint64_t	m_run_circles = 0;				//从启动开始  已经发了几包的数据  
+			uint64_t	m_run_circles = 0;				//has send data   
 
-			//---------------------线程相关---------------------------
+			//---------------------thread---------------------------
 			#if defined(_WIN32)
 				HANDLE  _thread = NULL;
-				HANDLE  _event_analysis;		//协议解析 
-				HANDLE  _event_circle;			//一圈点数据信息 
+				HANDLE  _event_analysis;		
+				HANDLE  _event_circle;			
 
-				DWORD static WINAPI periodThread(LPVOID lpParameter);		//线程进程  定时调用接口 
+				DWORD static WINAPI periodThread(LPVOID lpParameter);		//thread  
 			#else 
 				pthread_t _thread = -1;
 				pthread_cond_t _cond_analysis;

@@ -86,6 +86,11 @@ namespace nvilidar
 			bool SetZeroOffsetAngle(int16_t angle_set, int16_t &angle,
 												uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT); 	//get lidar 0 offset 
 
+			bool GetFilterQualityThreshold(uint16_t &ret_filter_quality,uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);	 //get lidar filter quality 
+
+			bool SetFilterQualityThreshold(uint16_t filter_quality_set, uint16_t &ret_filter_quality,
+												uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);	//set lidar filter quality value 
+
 			bool SaveCfg(bool &flag,uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);				//save para
 
 			bool LidarSamplingProcess(LidarScan &scan, uint32_t timeout = NVILIDAR_DEFAULT_TIMEOUT);  //lidar data output 

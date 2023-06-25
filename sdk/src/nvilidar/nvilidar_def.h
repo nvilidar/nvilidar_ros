@@ -9,7 +9,7 @@
 //======================================basic parameter============================================ 
 
 //SDK version 
-#define NVILIDAR_SDKVerision     "1.1.1"
+#define NVILIDAR_SDKVerision     "1.1.2"
 
 //PI def
 #ifndef M_PI
@@ -50,6 +50,7 @@ struct  Nvilidar_StoreConfigTypeDef
 	int16_t     angleOffset;            //angle offset == x64
 	uint8_t     tailingLevel;           //tailling level 0-max 20-min
 	uint16_t    apdValue;				//apd value 
+	uint16_t    qualityFilterThreshold;	//quality filter threshold
 };
 
 //数据信息 
@@ -98,6 +99,9 @@ struct  Nvilidar_UserConfigTypeDef
 	bool 		filter_jump_enable;		//is needed to filter jump point 
 	int 		filter_jump_value_min;	//filter min value 
 	int 		filter_jump_value_max;	//filter max value
+
+	bool 		quality_threshold_change_flag;	//quality threshold change flag
+	int 		quality_threshold;				//quality threshold value(less then this ,distance=0)
 };
 
 //共用体
@@ -145,6 +149,7 @@ typedef struct
 	int16_t     angleOffset;					//角度偏移x64
 	uint8_t     tailingLevel;					//拖尾等级
 	uint16_t    apdValue;						//apd值信息 
+	uint16_t 	qualityFilter;					//quality filter    
 	uint8_t     saveFlag;						//是否保存成功了 
 }NvilidarRecvInfoTypeDef;
 

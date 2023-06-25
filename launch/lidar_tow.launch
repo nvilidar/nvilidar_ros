@@ -26,6 +26,8 @@
     <param name="filter_jump_enable"          type="bool"  value="true" />
     <param name="filter_jump_value_min"       type="int"  value="3" />
     <param name="filter_jump_value_max"       type="int"  value="50" />
+    <param name="quality_threshold_change_flag"       type="bool"  value="false" />
+    <param name="quality_threshold"           type="int"  value="800" />
   </node>
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser"
     args="0.19 0.0 0.2 0.06 0.0  0.0 /base_footprint /laser_frame 40" />
@@ -58,6 +60,8 @@
     <param name="filter_jump_enable"          type="bool"  value="true" />
     <param name="filter_jump_value_min"       type="int"  value="3" />
     <param name="filter_jump_value_max"       type="int"  value="50" />
+    <param name="quality_threshold_change_flag"       type="bool"  value="false" />
+    <param name="quality_threshold"           type="int"  value="800" />
     <remap from="/scan" to="/scan_2" />
 </node>
 <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser_2"

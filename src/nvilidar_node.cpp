@@ -7,7 +7,7 @@
 #include "nvilidar_def.h"
 
 using namespace nvilidar;
-#define ROSVerision "1.1.1"
+#define ROSVerision "1.1.2"
 
 
 int main(int argc, char * argv[]) 
@@ -56,6 +56,9 @@ int main(int argc, char * argv[])
     nh_private.param<bool>("filter_jump_enable",  cfg.filter_jump_enable, true);
     nh_private.param<int>("filter_jump_value_min",  cfg.filter_jump_value_min, 3);
     nh_private.param<int>("filter_jump_value_max",  cfg.filter_jump_value_max, 50);
+    //lidar inner filter
+    nh_private.param<bool>("quality_threshold_change_flag", cfg.quality_threshold_change_flag,false);
+    nh_private.param<int>("quality_threshold", cfg.quality_threshold,800);
 
     //choice use serialport or socket 
     #if 1

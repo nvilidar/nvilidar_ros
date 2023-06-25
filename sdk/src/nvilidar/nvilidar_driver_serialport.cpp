@@ -92,41 +92,39 @@ namespace nvilidar
 			nvilidar::console.warning("Error initializing NVILIDAR scanner.Failed to get Lidar Angle Offset.");
 			return false;
 		}
+		if(lidar_cfg.lidar_model_name == NVILIDAR_ROC300){
+			//get lidar quality filter value 
+			if(false == GetFilterQualityThreshold(store_para_read.qualityFilterThreshold)){
+				nvilidar::console.warning("Error initializing NVILIDAR scanner.Failed to get Lidar Quality Filter Threshod.");
+			}
+		}
 
 #if 1
 		bool isNeedSetPara = false;
 		bool isSetOK = true;
 		//is same? 
-		if (lidar_cfg.storePara.samplingRate != store_para_read.samplingRate)		
-		{
+		if (lidar_cfg.storePara.samplingRate != store_para_read.samplingRate){
 			isNeedSetPara = true;
-			if (!SetSamplingRate(lidar_cfg.storePara.samplingRate, store_para_read.samplingRate))
-			{
+			if (!SetSamplingRate(lidar_cfg.storePara.samplingRate, store_para_read.samplingRate)){
 				isSetOK = false;
 			}
 		}
-		if (lidar_cfg.storePara.aimSpeed != store_para_read.aimSpeed)
-		{
+		if (lidar_cfg.storePara.aimSpeed != store_para_read.aimSpeed){
 			isNeedSetPara = true;
-			if (!SetScanMotorSpeed(lidar_cfg.storePara.aimSpeed, store_para_read.aimSpeed))
-			{
+			if (!SetScanMotorSpeed(lidar_cfg.storePara.aimSpeed, store_para_read.aimSpeed)){
 				isSetOK = false;
 			}
 		}
-		if (lidar_cfg.storePara.isHasSensitive != store_para_read.isHasSensitive)
-		{
+		if (lidar_cfg.storePara.isHasSensitive != store_para_read.isHasSensitive){
 			isNeedSetPara = true;
-			if(!SetIntensities(lidar_cfg.storePara.isHasSensitive))
-			{
+			if(!SetIntensities(lidar_cfg.storePara.isHasSensitive)){
 				isSetOK = false;
 			}
 			store_para_read.isHasSensitive = lidar_cfg.storePara.isHasSensitive;
 		}
-		if (lidar_cfg.storePara.tailingLevel != store_para_read.tailingLevel)
-		{
+		if (lidar_cfg.storePara.tailingLevel != store_para_read.tailingLevel){
 			isNeedSetPara = true;
-			if (!SetTrailingLevel(lidar_cfg.storePara.tailingLevel, store_para_read.tailingLevel))
-			{
+			if (!SetTrailingLevel(lidar_cfg.storePara.tailingLevel, store_para_read.tailingLevel)){
 				isSetOK = false;
 			}
 		}
@@ -140,11 +138,19 @@ namespace nvilidar
 		}
 		if (true == lidar_cfg.apd_change_flag){					//apd value 				
 			if(lidar_cfg.lidar_model_name == NVILIDAR_ROC300){
-				if (lidar_cfg.storePara.apdValue != store_para_read.apdValue)
-				{
+				if (lidar_cfg.storePara.apdValue != store_para_read.apdValue){
 					isNeedSetPara = true;
-					if (!SetApdValue(lidar_cfg.storePara.apdValue, store_para_read.apdValue))
-					{
+					if (!SetApdValue(lidar_cfg.storePara.apdValue, store_para_read.apdValue)){
+						isSetOK = false;
+					}
+				}
+			}
+		}
+		if(true == lidar_cfg.quality_threshold_change_flag){		//quality threshold 
+			if(lidar_cfg.lidar_model_name == NVILIDAR_ROC300){
+				if(lidar_cfg.storePara.qualityFilterThreshold != store_para_read.qualityFilterThreshold){
+					isNeedSetPara = true;
+					if(!SetFilterQualityThreshold(lidar_cfg.storePara.qualityFilterThreshold,store_para_read.qualityFilterThreshold)){
 						isSetOK = false;
 					}
 				}
@@ -152,20 +158,16 @@ namespace nvilidar
 		}
 		if (isNeedSetPara)
 		{
-			if (isSetOK)
-			{
+			if (isSetOK){
 				SaveCfg(save_flag);
-				if(save_flag)
-				{
+				if(save_flag){
 					nvilidar::console.show("NVILIDAR set para OK!");
 				}
-				else 
-				{
+				else {
 					nvilidar::console.show("NVILIDAR set para Fail!");
 				}
 			}
-			else
-			{
+			else{
 				nvilidar::console.warning("NVILIDAR set para Fail!");
 			}
 		}
@@ -179,7 +181,8 @@ namespace nvilidar
 		nvilidar::console.show("lidar tailling filter level :%d", store_para_read.tailingLevel);
 		nvilidar::console.show("lidar angle offset :%.2f",(double)store_para_read.angleOffset/64.0);
 		if(lidar_cfg.lidar_model_name == NVILIDAR_ROC300){
-			nvilidar::console.show("lidar apd value :%d\n",store_para_read.apdValue);
+			nvilidar::console.show("lidar apd value :%d",store_para_read.apdValue);
+			nvilidar::console.show("lidar quality filter threshold :%d\n",store_para_read.qualityFilterThreshold);
 		}
 
 		return true;
@@ -414,6 +417,8 @@ namespace nvilidar
 							(byte == NVILIDAR_CMD_SAVE_LIDAR_PARA) ||
 							(byte == NVILIDAR_CMD_GET_ANGLE_OFFSET) ||
 							(byte == NVILIDAR_CMD_SET_ANGLE_OFFSET) ||
+							(byte == NVILIDAR_CMD_GET_QUALITY_THRESHOLD) ||
+							(byte == NVILIDAR_CMD_SET_QUALITY_THRESHOLD) ||
 							(byte == NVILIDAR_CMD_SET_APD_VALUE)
 						)
 					{
@@ -645,6 +650,20 @@ namespace nvilidar
 
 				break;
 			}
+			case NVILIDAR_CMD_GET_QUALITY_THRESHOLD:  	//get the quality filter value
+			case NVILIDAR_CMD_SET_QUALITY_THRESHOLD:{	//set the quality filter value 
+				if (data.length != sizeof(recv_info.qualityFilter)){
+					break;
+				}
+
+				memcpy((char *)(&recv_info.qualityFilter), data.dataInfo, data.length);
+				recv_info.recvFinishFlag = true;		
+
+				//unlock 
+				setNormalResponseUnlock();		
+
+				break;
+			}  
 			default:
 			{
 				break;
@@ -1388,6 +1407,56 @@ namespace nvilidar
 			{
 				angle = recv_info.angleOffset;
 
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//get the lidar quality filter 
+	bool LidarDriverSerialport::GetFilterQualityThreshold(uint16_t &ret_filter_quality,uint32_t timeout){
+		recv_info.recvFinishFlag = false;
+
+		//先停止雷达 如果雷达在运行 
+		if(lidar_state.m_Scanning){
+			StopScan();
+		}
+
+		//发送命令
+		if (!SendCommand(NVILIDAR_CMD_GET_QUALITY_THRESHOLD)){
+			return false;
+		}
+
+		//等待线程同步 超时 
+		if (waitNormalResponse(timeout)){
+			if (recv_info.recvFinishFlag){
+				ret_filter_quality = recv_info.qualityFilter;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//set the lidar quality filter 
+	bool LidarDriverSerialport::SetFilterQualityThreshold(uint16_t filter_quality_set, uint16_t &ret_filter_quality,uint32_t timeout){
+		recv_info.recvFinishFlag = false;
+
+		//先停止雷达 如果雷达在运行 
+		if(lidar_state.m_Scanning){
+			StopScan();
+		}
+
+		//发送命令
+		if (!SendCommand(NVILIDAR_CMD_SET_QUALITY_THRESHOLD,(uint8_t *)(&filter_quality_set), sizeof(filter_quality_set))){
+			return false;
+		}
+
+		//等待线程同步 超时 
+		if (waitNormalResponse(timeout)){
+			if (recv_info.recvFinishFlag){
+				ret_filter_quality = recv_info.qualityFilter;
 				return true;
 			}
 		}

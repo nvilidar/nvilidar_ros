@@ -20,8 +20,8 @@
 #define NVILIDAR_CMD_GET_SAMPLING_RATE         0xDA        //读采样率
 #define NVILIDAR_CMD_SET_SAMPLING_RATE         0xCA        //写采样率
 
-#define NVILIDAR_CMD_GET_TAILING_LEVEL         0xDA        //读角度偏移
-#define NVILIDAR_CMD_SET_TAILING_LEVEL         0xCB        //写角度偏移
+#define NVILIDAR_CMD_GET_TAILING_LEVEL         0xDA        //tail value 0~20
+#define NVILIDAR_CMD_SET_TAILING_LEVEL         0xCB        //tail value 0~20
 
 #define NVILIDAR_CMD_GET_ANGLE_OFFSET          0xC5        //读角度偏移
 #define NVILIDAR_CMD_SET_ANGLE_OFFSET          0xC4        //写角度偏移
@@ -29,11 +29,14 @@
 #define NVILIDAR_CMD_SET_HAVE_INTENSITIES      0x50        //有信号质量
 #define NVILIDAR_CMD_SET_NO_INTENSITIES        0x51        //设置没有信号质量
 
-#define NVILIDAR_CMD_GET_APD_VALUE			   0xDA        //读灵敏度(apd)信息
-#define NVILIDAR_CMD_SET_APD_VALUE			   0x29        //写灵敏度(apd)信息
+#define NVILIDAR_CMD_GET_APD_VALUE			       0xDA        //读灵敏度(apd)信息
+#define NVILIDAR_CMD_SET_APD_VALUE			       0x29        //写灵敏度(apd)信息
 
 #define NVILIDAR_CMD_GET_DISTANCE_OFFSET       0xC9        //读距离偏移
 #define NVILIDAR_CMD_SET_DISTANCE_OFFSET       0xC8        //写距离偏移
+
+#define NVILIDAR_CMD_GET_QUALITY_THRESHOLD     0x19        //read the lidar quality threshold 
+#define NVILIDAR_CMD_SET_QUALITY_THRESHOLD     0x15        //write the lidar quality threshold 
 
 //长短命令头字节 尾字节
 #define NVILIDAR_START_BYTE_LONG_CMD           0x40        //长命令  头字节
@@ -43,14 +46,14 @@
 //一包最多的点数信息
 #define NVILIDAR_PACK_MAX_POINTS               256
 
-#define NVILIDAR_POINT_PACKAGE_HEAD_SIZE             12          //包头（扫图时）
+#define NVILIDAR_POINT_PACKAGE_HEAD_SIZE       12          //包头（扫图时）
 
-#define NVILIDAR_POINT_HEADER                  0x55AA        //包头信息
+#define NVILIDAR_POINT_HEADER                  0x55AA      //包头信息
 
-#define NVILIDAR_RESP_MEASUREMENT_CHECKBIT     (0x1)     //角度标记位是否有效
-#define NVILIDAR_ANGULDAR_RESOLUTION           64           //角分辨率 即多少数表示为1度角
+#define NVILIDAR_RESP_MEASUREMENT_CHECKBIT     (0x1)       //角度标记位是否有效
+#define NVILIDAR_ANGULDAR_RESOLUTION           64          //角分辨率 即多少数表示为1度角
 
-#define NVILIDAR_SINGLE_PACK_MAX               1200         //单包点最大字节数
+#define NVILIDAR_SINGLE_PACK_MAX               1200        //单包点最大字节数
 
 //包对齐
 #pragma pack(push)
