@@ -121,9 +121,6 @@ namespace nvilidar
 
 			nvilidar_serial::Nvilidar_Serial serialport;
 
-			//-----------------------filter -----------------------
-			nvilidar::LidarFilter lidar_filter;
-
 			//----------------------value ----------------------------
 			Nvilidar_UserConfigTypeDef     lidar_cfg;				//lidar config data 
 			CircleDataInfoTypeDef		   circleDataInfo;			//lida circle data  

@@ -7,7 +7,7 @@
 #include "nvilidar_def.h"
 
 using namespace nvilidar;
-#define ROSVerision "1.1.2"
+#define ROSVerision "1.1.4"
 
 
 int main(int argc, char * argv[]) 
@@ -53,9 +53,16 @@ int main(int argc, char * argv[])
     nh_private.param<int>("apd_value",  cfg.apd_value, 500);
     nh_private.param<std::string>("ignore_array_string",  cfg.ignore_array_string, "");
     //filter 
-    nh_private.param<bool>("filter_jump_enable",  cfg.filter_jump_enable, true);
-    nh_private.param<int>("filter_jump_value_min",  cfg.filter_jump_value_min, 3);
-    nh_private.param<int>("filter_jump_value_max",  cfg.filter_jump_value_max, 50);
+    nh_private.param<bool>("filter_sliding_enable",  cfg.filter_para.sliding_filter.enable, true);
+    nh_private.param<int>("filter_sliding_jump_threshold",  cfg.filter_para.sliding_filter.jump_threshold, 50);
+    nh_private.param<bool>("filter_sliding_max_range_flag",  cfg.filter_para.sliding_filter.max_range_flag, false);
+    nh_private.param<int>("filter_sliding_max_range",  cfg.filter_para.sliding_filter.max_range, 8000);
+    nh_private.param<int>("filter_sliding_window",  cfg.filter_para.sliding_filter.window, 5);
+    nh_private.param<bool>("filter_tail_enable",  cfg.filter_para.tail_filter.enable, true);
+    nh_private.param<bool>("filter_tail_distance_limit_flag",  cfg.filter_para.tail_filter.distance_limit_flag, false);
+    nh_private.param<int>("filter_tail_distance_limit_value",  cfg.filter_para.tail_filter.distance_limit_value, 8000);
+    nh_private.param<int>("filter_tail_level",  cfg.filter_para.tail_filter.level, 6);
+    nh_private.param<int>("filter_tail_neighbors",  cfg.filter_para.tail_filter.neighbors, 0);
     //lidar inner filter
     nh_private.param<bool>("quality_threshold_change_flag", cfg.quality_threshold_change_flag,false);
     nh_private.param<int>("quality_threshold", cfg.quality_threshold,800);

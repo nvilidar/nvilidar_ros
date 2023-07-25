@@ -255,11 +255,19 @@ namespace nvilidar
 		cfg.apd_change_flag = false;		//can change apd value,default false
 		cfg.apd_value = 500;				//change apd value 
 		cfg.ignore_array_string = "";		//filter some angle 
-		//过滤点信息 
-		cfg.filter_jump_enable = true;		//jump point filter 
-		cfg.filter_jump_value_min = 3;		//min filter 
-		cfg.filter_jump_value_max = 25;		//max filter 
-		//filter 
+		//filter para 
+		cfg.filter_para.sliding_filter.enable = true;	//lidar filter para --- sliding
+		cfg.filter_para.sliding_filter.jump_threshold = 50;
+		cfg.filter_para.sliding_filter.max_range_flag = false;
+		cfg.filter_para.sliding_filter.max_range = 8000;
+		cfg.filter_para.sliding_filter.window = 3;
+		cfg.filter_para.tail_filter.enable = true;
+		cfg.filter_para.tail_filter.distance_limit_flag = false;
+		cfg.filter_para.tail_filter.distance_limit_value = 8000;
+		cfg.filter_para.tail_filter.level = 8;
+		cfg.filter_para.tail_filter.neighbors = 0;
+
+		//filter(lidar inner)
 		cfg.quality_threshold = 800;
 		cfg.quality_threshold_change_flag = false;
 

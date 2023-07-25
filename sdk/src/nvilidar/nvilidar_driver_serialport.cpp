@@ -20,17 +20,14 @@ namespace nvilidar
 	}
 
 	//load para 
-	void LidarDriverSerialport::LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg)
-	{
-		lidar_cfg = cfg;                   
-		lidar_filter.LidarFilterLoadPara(cfg);
+	void LidarDriverSerialport::LidarLoadConfig(Nvilidar_UserConfigTypeDef cfg){
+		lidar_cfg = cfg;   
+		LidarFilter::instance()->LidarFilterLoadPara(cfg.filter_para);                
 	}
 
 	//is lidar connected 
-	bool LidarDriverSerialport::LidarIsConnected()
-	{
-		if(lidar_state.m_CommOpen)
-		{
+	bool LidarDriverSerialport::LidarIsConnected(){
+		if(lidar_state.m_CommOpen){
 			return true;
 		}
 		return false;
@@ -1781,16 +1778,18 @@ namespace nvilidar
 			DWORD state;
 			ResetEvent(_event_circle);		// 重置事件，让其他线程继续等待（相当于获取锁）
 			state = WaitForSingleObject(_event_circle, timeout);
-			if (state == WAIT_OBJECT_0)
-			{
-				//点集格式转换 
+			if (state == WAIT_OBJECT_0){
+				//data filter 
+				node_in = circleDataInfo.lidarCircleNodePoints;
+				LidarFilter::instance()->LidarNoiseFilter(node_in,circleDataInfo.lidarCircleNodePoints);
+				//filter change 
 				LidarSamplingData(circleDataInfo, scan);
-
 				return true;
 			}	
 		#else 
 			struct timeval now;
     		struct timespec outtime;
+			std::vector<Nvilidar_Node_Info> node_in;
 			int state = -1;
 
 			pthread_mutex_lock(&_mutex_point);
@@ -1802,16 +1801,12 @@ namespace nvilidar
 			state = pthread_cond_timedwait(&_cond_point, &_mutex_point, &outtime);
 			pthread_mutex_unlock(&_mutex_point);
 
-			if(0 == state)
-			{
-				if(lidar_cfg.filter_jump_enable)
-				{
-					//一圈数据  输出后 是否做其它数据 
-					lidar_filter.LidarJumpFilter(circleDataInfo.lidarCircleNodePoints);
-				}
-				//点集格式转换 
+			if(0 == state){
+				//data filter 
+				node_in = circleDataInfo.lidarCircleNodePoints;
+				LidarFilter::instance()->LidarNoiseFilter(node_in,circleDataInfo.lidarCircleNodePoints);
+				//filter change 
 				LidarSamplingData(circleDataInfo, scan);
-
 				return true;
 			}
 		#endif

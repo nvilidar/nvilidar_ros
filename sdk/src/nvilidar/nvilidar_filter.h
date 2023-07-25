@@ -17,13 +17,18 @@ namespace nvilidar
 	class  NVILIDAR_FILTER_API LidarFilter
     {
 		public:
+			static LidarFilter *instance();
+
+			void LidarFilterLoadPara(FilterPara cfg);		//load fit para 
+			bool LidarNoiseFilter(std::vector<Nvilidar_Node_Info> in,std::vector<Nvilidar_Node_Info> &out);
+    		bool LidarTailFilter(TailFilterPara para,std::vector<Nvilidar_Node_Info> in,std::vector<Nvilidar_Node_Info> &out);
+    		bool LidarSlidingFilter(SlidingFilterPara para,std::vector<Nvilidar_Node_Info> in,std::vector<Nvilidar_Node_Info> &out);
+
+		private:
+			FilterPara     lidar_filter_cfg;				//lidar filter config parameter 
 			LidarFilter();		
 			~LidarFilter();
 
-			void LidarFilterLoadPara(Nvilidar_UserConfigTypeDef cfg);		//load fit para 
-			void LidarJumpFilter(std::vector<Nvilidar_Node_Info> &in);		//jump data  filter 
-
-		private:
-			Nvilidar_UserConfigTypeDef     lidar_cfg;				//lidar model 
+			static LidarFilter *_instance;
     };
 }

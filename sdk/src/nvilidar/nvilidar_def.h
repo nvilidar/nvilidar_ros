@@ -9,7 +9,7 @@
 //======================================basic parameter============================================ 
 
 //SDK version 
-#define NVILIDAR_SDKVerision     "1.1.2"
+#define NVILIDAR_SDKVerision     "1.1.4"
 
 //PI def
 #ifndef M_PI
@@ -53,7 +53,7 @@ struct  Nvilidar_StoreConfigTypeDef
 	uint16_t    qualityFilterThreshold;	//quality filter threshold
 };
 
-//数据信息 
+//lidar data info  
 struct Nvilidar_DeviceInfo
 {
 	std::string m_SoftVer;				//software version
@@ -62,7 +62,29 @@ struct Nvilidar_DeviceInfo
 	std::string m_SerialNum;			//serialnumber 
 };
 
-//雷达配置参数
+//lidar filter para --- lidar tail para 
+typedef struct{
+	bool   enable;
+	int    level;
+	bool   distance_limit_flag;
+	int    distance_limit_value;
+	int    neighbors;
+}TailFilterPara;
+//lidar filter para --- lidar sliding filter para 
+typedef struct{
+	bool   enable;          
+	int    jump_threshold;  
+	int    max_range;       
+	bool   max_range_flag;  
+	int    window;
+}SlidingFilterPara;
+//lidar filter para 
+typedef struct{
+	TailFilterPara  tail_filter;
+	SlidingFilterPara  sliding_filter;
+}FilterPara;
+
+//lidar configure para
 struct  Nvilidar_UserConfigTypeDef
 {
 	LidarModelListEnumTypeDef  lidar_model_name;	//lidar model name 
@@ -96,64 +118,61 @@ struct  Nvilidar_UserConfigTypeDef
 	Nvilidar_DeviceInfo			deviceInfo;	//lidar info 
 	Nvilidar_StoreConfigTypeDef	storePara;	//lidar needed to store  
 
-	bool 		filter_jump_enable;		//is needed to filter jump point 
-	int 		filter_jump_value_min;	//filter min value 
-	int 		filter_jump_value_max;	//filter max value
+	FilterPara	filter_para;			//lidar pointcloud filter para info 
 
 	bool 		quality_threshold_change_flag;	//quality threshold change flag
 	int 		quality_threshold;				//quality threshold value(less then this ,distance=0)
 };
 
-//共用体
-union Nvilidar_PackageBufTypeDef
-{
+//lidar receive info typedef 
+union Nvilidar_PackageBufTypeDef{
 	uint8_t buf[1200];
 	Nvilidar_Node_Package_Quality        pack_qua;
 	Nvilidar_Node_Package_No_Quality     pack_no_qua;
 };
 
-//包信息
+//lidar package info 
 typedef struct 
 {
-	uint16_t packageIndex;         //单包采样点索引位置信息
-	Nvilidar_PackageBufTypeDef  packageBuffer;    //包信息（实际内容）
-	bool     packageErrFlag;       //包错误标记信息
-	uint16_t packageCheckSumGet;   //校验值获取
-	uint16_t packageCheckSumCalc;  //校验值计算
-	uint16_t  packageFreq;          //雷达转速信息
-	int16_t  packageTemp;          //雷达温度信息
-	uint32_t packagePointTime;     //2点时间间隔
-	uint16_t packageFirstAngle;    //起始采样角
-	uint16_t packageLastAngle;     //结束采样角
-	float    packageAngleDiffer;   //每2个点之间的角度差
-	float    packageLastAngleDiffer; //最后一次算的2点角度的差值
-	uint8_t  packagePointDistSize; //一个点对应的字节的大小信息
-	bool     packageHas0CAngle;    //是否为0度角
-	bool     packageHasTemp;       //是否当前位置为温度
-	bool     packageHas0CFirst;    //第一个字节 判断是否是0度角
-	bool     packageHasTempFirst;  //第一个字节 判断是否为温度信息
-	uint16_t  package0CIndex;      //0度角索引（目前协议为非单独封包）
-	uint64_t packageStamp;		   //接收完本包的时间 
-	uint16_t packagePointNum;	   //一包的点数信息 
+	uint16_t packageIndex;         //angle 0 index 
+	Nvilidar_PackageBufTypeDef  packageBuffer;    //pacage buffer data 
+	bool     packageErrFlag;       //package error flag
+	uint16_t packageCheckSumGet;   //checksum get from protocol 
+	uint16_t packageCheckSumCalc;  //checksum calc by ros
+	uint16_t  packageFreq;         //lidar run speed 
+	int16_t  packageTemp;          //lidar temperature 
+	uint32_t packagePointTime;     //lidar point time info 
+	uint16_t packageFirstAngle;    //lidar start angle 
+	uint16_t packageLastAngle;     //lidar stop angle 
+	float    packageAngleDiffer;   //lidar angle differ 
+	float    packageLastAngleDiffer; //lidar last angle differ 
+	uint8_t  packagePointDistSize; //package point distance 
+	bool     packageHas0CAngle;    //package is 0 angle 
+	bool     packageHasTemp;       //current package has temperature data???
+	bool     packageHas0CFirst;    //first byte 
+	bool     packageHasTempFirst;  //first byte 
+	uint16_t  package0CIndex;      //angle 0 index 
+	uint64_t packageStamp;		   //received the data stamp info  
+	uint16_t packagePointNum;	   //point num 
 }Nvilidar_PointViewerPackageInfoTypeDef;
 
-//接收信息 (只用于接收暂存 无其它用)
+//lidar received data info 
 typedef struct
 {
 	bool	recvFinishFlag;
-	Nvilidar_Protocol_DeviceInfo lidar_device_info;//雷达接收并且返回的数据  
-	Nvilidar_Protocol_GetPara    lidar_get_para;	//获取参数信息 
-	uint8_t     isHasSensitive;					//有信号质量信息
-	uint16_t    aimSpeed;						//转速信息 x100
-	uint32_t    samplingRate;					//采样率x1
-	int16_t     angleOffset;					//角度偏移x64
-	uint8_t     tailingLevel;					//拖尾等级
-	uint16_t    apdValue;						//apd值信息 
+	Nvilidar_Protocol_DeviceInfo lidar_device_info;//Data received and returned by the radar
+	Nvilidar_Protocol_GetPara    lidar_get_para;	//Getting parameter information 
+	uint8_t     isHasSensitive;					//Signal quality information is available
+	uint16_t    aimSpeed;						//speed information x100
+	uint32_t    samplingRate;					//Sample rate x1
+	int16_t     angleOffset;					//Angular offset x64
+	uint8_t     tailingLevel;					//dragging class for mcu 
+	uint16_t    apdValue;						//apd value information 
 	uint16_t 	qualityFilter;					//quality filter    
-	uint8_t     saveFlag;						//是否保存成功了 
+	uint8_t     saveFlag;						//Did you save it successfully? 
 }NvilidarRecvInfoTypeDef;
 
-//一圈点信息 
+//one circle data info  
 typedef struct
 {
 	uint64_t  startStamp;			//One Lap Start Timestamp 
@@ -163,7 +182,7 @@ typedef struct
 
 
 
-//======================================输出数据信息============================================ 
+//======================================Output data information============================================ 
 /**
  * @brief The Laser Point struct
  * @note angle unit: rad.\n

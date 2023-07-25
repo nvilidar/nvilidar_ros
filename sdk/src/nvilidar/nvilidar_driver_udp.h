@@ -111,9 +111,6 @@ namespace nvilidar
 
 			nvilidar_socket::Nvilidar_Socket_UDP socket_udp;
 
-			//-----------------------过滤信息------------------------
-			nvilidar::LidarFilter lidar_filter;
-
 			//----------------------value ----------------------------
 			Nvilidar_UserConfigTypeDef     lidar_cfg;				//lidar config data 
 			CircleDataInfoTypeDef		   circleDataInfo;			//lida circle data  
