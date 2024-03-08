@@ -6,6 +6,7 @@
 #include <sstream>
 #include <math.h>
 #include <numeric>
+#include <cmath>
 
 namespace nvilidar
 {
